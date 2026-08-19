@@ -1,0 +1,73 @@
+.shell {
+  /* dvh keeps the layout correct while Safari's address bar grows and shrinks. */
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.shell-pane {
+  position: relative;
+  min-height: 0; /* lets the child own the scroll instead of the grid stretching */
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Every screen scrolls inside itself, never the page body — this is what stops
+   iOS from rubber-banding the whole app. */
+.screen-scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: calc(env(safe-area-inset-top) + 1rem) 1rem 1.25rem;
+}
+
+.screen-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.screen-title {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.screen-sub {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* Placeholder card used by the not-yet-built sections. */
+.stub {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.stub h2 { margin: 0; font-size: 1rem; font-weight: 600; }
+.stub p { margin: 0; color: var(--muted); font-size: 0.87rem; line-height: 1.5; }
+
+.stub-phase {
+  justify-self: start;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--a2);
+  background: color-mix(in oklab, var(--a2) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--a2) 30%, transparent);
+}

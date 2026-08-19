@@ -1,36 +1,34 @@
-import { useEffect, useRef } from 'react'
-import gsap from 'gsap'
-import './App.css'
+import { Suspense, lazy } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { Shell } from './components/Shell'
+import Lock from './screens/Lock'
+import { useSession } from './store/session'
 
-/**
- * Phase 1 holding screen. Its only job is to prove the whole pipeline works
- * end to end — build, deploy, and correct rendering on a real phone.
- * The real shell and lock screen land in Phase 3.
- */
+// Route-level code splitting: the lock screen is all most sessions load first,
+// so the section bundles stay off the critical path.
+const Chat = lazy(() => import('./screens/Chat'))
+const Notes = lazy(() => import('./screens/Notes'))
+const Gallery = lazy(() => import('./screens/Gallery'))
+const Voice = lazy(() => import('./screens/Voice'))
+const You = lazy(() => import('./screens/You'))
+
 export default function App() {
-  const root = useRef<HTMLDivElement>(null)
+  const user = useSession((s) => s.user)
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap
-        .timeline({ defaults: { ease: 'power3.out' } })
-        .from('.mark', { y: 24, opacity: 0, duration: 0.9 })
-        .from('.sub', { y: 12, opacity: 0, duration: 0.7 }, '-=0.55')
-        .from('.dot', { scale: 0, opacity: 0, duration: 0.5, stagger: 0.08 }, '-=0.4')
-    }, root)
-    return () => ctx.revert()
-  }, [])
+  if (!user) return <Lock />
 
   return (
-    <div className="screen" ref={root}>
-      <div className="aurora" aria-hidden="true" />
-      <main className="center">
-        <h1 className="mark">R<span>+</span>S</h1>
-        <p className="sub">under construction</p>
-        <div className="dots" aria-hidden="true">
-          <i className="dot" /><i className="dot" /><i className="dot" />
-        </div>
-      </main>
-    </div>
+    <Suspense fallback={<div className="shell" />}>
+      <Routes>
+        <Route element={<Shell />}>
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/voice" element={<Voice />} />
+          <Route path="/you" element={<You />} />
+          <Route path="*" element={<Navigate to="/chat" replace />} />
+        </Route>
+      </Routes>
+    </Suspense>
   )
 }

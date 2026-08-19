@@ -1,0 +1,67 @@
+.panel {
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.15rem 1.3rem;
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.panel-title { margin: 0; font-size: 1rem; font-weight: 600; }
+
+.panel-note { margin: 0.3rem 0 1rem; font-size: 0.8rem; color: var(--muted); }
+
+.themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.7rem;
+}
+
+.theme-card {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+  padding: 0.85rem 0.5rem;
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
+  border: 1.5px solid transparent;
+  transition: transform 0.16s ease, border-color 0.24s ease, background-color 0.24s ease;
+  touch-action: manipulation;
+}
+
+.theme-card:active { transform: scale(0.95); }
+
+.theme-card.is-active {
+  border-color: var(--a2);
+  background: color-mix(in oklab, var(--a2) 12%, transparent);
+}
+
+.theme-swatch {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.theme-name { font-size: 0.8rem; color: var(--text); }
+
+.facts { margin: 0; display: grid; gap: 0.6rem; }
+.facts > div { display: flex; justify-content: space-between; gap: 1rem; }
+.facts dt { color: var(--muted); font-size: 0.85rem; }
+.facts dd { margin: 0; font-size: 0.85rem; text-align: right; }
+
+.signout {
+  width: 100%;
+  padding: 0.95rem;
+  border-radius: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+  transition: transform 0.16s ease, background-color 0.2s ease;
+  touch-action: manipulation;
+}
+
+.signout:active {
+  transform: scale(0.97);
+  background: color-mix(in oklab, var(--a3) 22%, transparent);
+}
