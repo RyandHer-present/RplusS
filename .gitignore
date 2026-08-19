@@ -27,3 +27,6 @@ dist-ssr
 # anything genuinely secret goes in .env.local, which is not.
 .env.local
 .env.*.local
+
+# Supabase CLI scratch files
+supabase/.temp/
