@@ -1,1 +1,0 @@
-import{s as e}from"./index-ChHwgMkq.js";import{t}from"./Stub-B5VCM2qo.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Notes`,heading:`Say more than a message`,body:`Write something long. No pressure to reply, nothing scrolling away.`,phase:`Phase 6`})}export{r as default};

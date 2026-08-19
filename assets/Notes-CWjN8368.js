@@ -1,0 +1,1 @@
+import{s as e}from"./index-Cdy6X6h5.js";import{t}from"./Stub-BKELE-4t.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Notes`,heading:`Say more than a message`,body:`Write something long. No pressure to reply, nothing scrolling away.`,phase:`Phase 6`})}export{r as default};
