@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { TABS, TabBar } from './TabBar'
+import { useUnread } from '../store/unread'
+import { useSession } from '../store/session'
 import { haptic } from '../lib/haptics'
 import './Shell.css'
 
@@ -17,6 +19,22 @@ export function Shell() {
   const navigate = useNavigate()
   const paneRef = useRef<HTMLDivElement>(null)
   const prevIndex = useRef(tabIndex(location.pathname))
+  const me = useSession((s) => s.user)
+  const loadUnread = useUnread((s) => s.load)
+  const subscribeUnread = useUnread((s) => s.subscribe)
+  const markSeen = useUnread((s) => s.markSeen)
+
+  useEffect(() => {
+    if (!me) return
+    void loadUnread(me)
+    return subscribeUnread(me)
+  }, [me, loadUnread, subscribeUnread])
+
+  // Arriving at a section clears its dot.
+  useEffect(() => {
+    const tab = TABS.find((t) => location.pathname.startsWith(t.to))
+    if (tab) markSeen(tab.to)
+  }, [location.pathname, markSeen])
 
   // Slide the incoming screen in from whichever side it lives on, so movement
   // through the app matches the tab order.

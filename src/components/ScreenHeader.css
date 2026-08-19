@@ -54,3 +54,18 @@
 .you-button.has-mood {
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--mood), 0 0 14px color-mix(in oklab, var(--mood) 55%, transparent);
 }
+
+.header-icon {
+  width: 2.15rem;
+  height: 2.15rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
+  border: 1px solid var(--hairline);
+  transition: transform 0.16s ease, color 0.2s ease;
+}
+
+.header-icon:active { transform: scale(0.9); color: var(--text); }
+.header-icon svg { width: 1.05rem; height: 1.05rem; }

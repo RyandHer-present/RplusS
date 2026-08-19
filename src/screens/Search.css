@@ -1,0 +1,120 @@
+.search {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.search-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(env(safe-area-inset-top) + 0.75rem) 1rem 0.75rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.search-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+}
+
+.search-field svg { flex: none; width: 1.05rem; height: 1.05rem; color: var(--muted); }
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--text);
+}
+
+.search-field input::placeholder { color: var(--muted); }
+
+.search-clear {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--text) 12%, transparent);
+}
+
+.search-cancel { flex: none; font-size: 0.9rem; font-weight: 600; color: var(--a2); }
+
+.search-results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 0.85rem 1rem calc(env(safe-area-inset-bottom) + 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-count { margin: 0 0 0.2rem; font-size: 0.72rem; color: var(--muted); }
+.search-empty { margin: 2rem 0; text-align: center; color: var(--muted); font-size: 0.87rem; }
+
+.search-hit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius);
+  text-align: left;
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.16s ease;
+}
+
+.search-hit:active { transform: scale(0.985); }
+
+.search-hit-head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--muted); }
+
+.search-kind {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.6rem;
+}
+
+.search-kind.is-message { color: var(--a2); background: color-mix(in oklab, var(--a2) 15%, transparent); }
+.search-kind.is-note { color: var(--a3); background: color-mix(in oklab, var(--a3) 15%, transparent); }
+
+.search-who { font-weight: 600; color: var(--text); }
+.search-when { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+.search-hit-title { font-size: 0.9rem; font-weight: 650; }
+
+.search-hit-body {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--text) 80%, transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.search-hit mark {
+  padding: 0 0.1em;
+  border-radius: 0.2em;
+  color: var(--text);
+  background: color-mix(in oklab, var(--a2) 35%, transparent);
+}

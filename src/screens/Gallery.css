@@ -94,3 +94,53 @@
   font-weight: 500;
   opacity: 0.75;
 }
+
+.on-this-day {
+  margin-bottom: 1.1rem;
+  padding: 0.8rem 0.85rem 0.9rem;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--a3) 16%, transparent), transparent 60%),
+    var(--glass);
+  border: 1px solid color-mix(in oklab, var(--a3) 28%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.on-this-day-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--a3);
+}
+
+.on-this-day-label span { letter-spacing: 0.04em; color: var(--muted); }
+
+/* Scrolls sideways on its own, so the swipe-between-sections gesture opts out. */
+.on-this-day-row {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.15rem;
+}
+
+.on-this-day-row::-webkit-scrollbar { display: none; }
+
+.on-this-day-cell {
+  flex: none;
+  width: 5.5rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  padding: 0;
+  background: var(--surface-2);
+  transition: transform 0.18s cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+
+.on-this-day-cell:active { transform: scale(0.95); }
+.on-this-day-cell .media-image { position: absolute; inset: 0; aspect-ratio: auto !important; height: 100%; }

@@ -46,11 +46,48 @@ export default function Gallery() {
     [posts, tab],
   )
 
+  // Anything posted on this calendar date in an earlier year.
+  const onThisDay = useMemo(() => {
+    const now = new Date()
+    return posts.filter((p) => {
+      const at = new Date(p.created_at)
+      return (
+        at.getFullYear() < now.getFullYear() &&
+        at.getMonth() === now.getMonth() &&
+        at.getDate() === now.getDate()
+      )
+    })
+  }, [posts])
+
   const mine = tab === me
 
   return (
     <div className="screen-scroll">
       <ScreenHeader title="Gallery" sub={`${counts.ry + counts.sarah} posts`} />
+
+      {onThisDay.length > 0 && (
+        <section className="on-this-day">
+          <h2 className="on-this-day-label">
+            On this day
+            <span>{new Date(onThisDay[0].created_at).getFullYear()}</span>
+          </h2>
+          <div className="on-this-day-row" data-no-swipe>
+            {onThisDay.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className="on-this-day-cell"
+                onClick={() => {
+                  haptic('tap')
+                  setOpen(item)
+                }}
+              >
+                {item.media && <MediaImage media={item.media} alt="" />}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <OwnerTabs value={tab} onChange={setTab} counts={counts} me={me} />
 

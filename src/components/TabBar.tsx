@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useUnread } from '../store/unread'
 import { haptic } from '../lib/haptics'
 import './TabBar.css'
 
@@ -70,6 +71,15 @@ export const TABS: Tab[] = [
 ]
 
 export function TabBar() {
+  // Subscribing to both keeps the dot reactive; isUnread alone is a getter.
+  const latest = useUnread((s) => s.latest)
+  const seen = useUnread((s) => s.seen)
+
+  const unread = (path: string) => {
+    const arrived = latest[path]
+    return Boolean(arrived && (!seen[path] || arrived > seen[path]))
+  }
+
   return (
     <nav className="tabbar" aria-label="Sections">
       {TABS.map((tab) => (
@@ -79,7 +89,10 @@ export function TabBar() {
           className={({ isActive }) => `tab ${isActive ? 'is-active' : ''}`}
           onClick={() => haptic('select')}
         >
-          <span className="tab-icon">{tab.icon}</span>
+          <span className="tab-icon">
+            {tab.icon}
+            {unread(tab.to) && <span className="tab-badge" aria-label="New" />}
+          </span>
           <span className="tab-label">{tab.label}</span>
           <span className="tab-glow" aria-hidden="true" />
         </NavLink>

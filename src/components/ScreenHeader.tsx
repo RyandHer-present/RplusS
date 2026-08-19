@@ -34,6 +34,26 @@ export function YouButton() {
   )
 }
 
+export function SearchButton() {
+  const navigate = useNavigate()
+  return (
+    <button
+      type="button"
+      className="header-icon"
+      aria-label="Search"
+      onClick={() => {
+        haptic('select')
+        navigate('/search')
+      }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="m16 16 4.5 4.5" />
+      </svg>
+    </button>
+  )
+}
+
 export function ScreenHeader({ title, sub, actions }: Props) {
   return (
     <header className="screen-header">
@@ -43,6 +63,7 @@ export function ScreenHeader({ title, sub, actions }: Props) {
       </div>
       <div className="screen-header-actions">
         {actions}
+        <SearchButton />
         <YouButton />
       </div>
     </header>
