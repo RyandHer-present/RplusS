@@ -1,40 +1,84 @@
 /* ---- RplusS base layer -------------------------------------------------- */
 
 :root {
-  /* Aurora theme tokens. Phase 3 swaps these per-theme at runtime. */
+  /* Aurora theme tokens. ThemeProvider swaps these at runtime. */
   --bg: #07070c;
   --surface: #10101a;
+  --surface-2: #1a1a2b;
+  --border: #262640;
   --text: #f2f2f7;
   --muted: #8e8ea6;
   --a1: #7b5cff;
   --a2: #21d4fd;
   --a3: #ff5cf0;
 
+  /* Derived once here so every panel shares the same depth and softness. */
+  --radius: 1.05rem;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 40px -18px rgba(0, 0, 0, 0.75);
+  --glass: color-mix(in oklab, var(--surface) 78%, transparent);
+  --hairline: color-mix(in oklab, var(--text) 9%, transparent);
+
   color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body, #root {
-  height: 100%;
-  margin: 0;
-}
+html, body, #root { height: 100%; margin: 0; }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Kills the grey flash box when tapping on mobile */
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
-  /* Stops iOS Safari rubber-banding the whole shell */
+  text-rendering: optimizeLegibility;
   overscroll-behavior: none;
 }
 
 /* Inputs below 16px make iOS auto-zoom the page on focus. Never go smaller. */
 input, textarea, select, button { font: inherit; font-size: max(16px, 1rem); }
 
-button { -webkit-appearance: none; appearance: none; border: 0; background: none; color: inherit; cursor: pointer; }
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+::selection { background: color-mix(in oklab, var(--a2) 40%, transparent); }
+
+/* Scrollbars, for the desktop side of things. */
+* { scrollbar-width: thin; scrollbar-color: var(--surface-2) transparent; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 999px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- shared motion ------------------------------------------------------ */
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Sections stagger their children in on arrival. Purely transform/opacity, so
+   it stays on the compositor. */
+.stagger > * {
+  animation: rise-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger > *:nth-child(4) { animation-delay: 0.14s; }
+.stagger > *:nth-child(5) { animation-delay: 0.18s; }
+.stagger > *:nth-child(n + 6) { animation-delay: 0.22s; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
