@@ -1,0 +1,68 @@
+.screen {
+  position: relative;
+  min-height: 100dvh;               /* dvh, not vh — accounts for Safari's moving address bar */
+  display: grid;
+  place-items: center;
+  padding: calc(env(safe-area-inset-top) + 1rem) 1rem calc(env(safe-area-inset-bottom) + 1rem);
+  overflow: hidden;
+}
+
+/* Soft-stop radial gradients instead of filter:blur() — same look, far cheaper on phones. */
+.aurora {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(38% 32% at 22% 28%, color-mix(in oklab, var(--a1) 55%, transparent), transparent 70%),
+    radial-gradient(34% 30% at 78% 24%, color-mix(in oklab, var(--a2) 45%, transparent), transparent 70%),
+    radial-gradient(42% 36% at 55% 82%, color-mix(in oklab, var(--a3) 40%, transparent), transparent 72%);
+  animation: drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* transform + opacity only, so this stays on the compositor and never triggers layout. */
+@keyframes drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to   { transform: translate3d(3%, 2%, 0) scale(1.12); }
+}
+
+.center { position: relative; text-align: center; }
+
+.mark {
+  margin: 0;
+  font-size: clamp(4rem, 22vw, 9rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  background: linear-gradient(120deg, #fff, var(--a2) 45%, var(--a3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mark span { opacity: 0.5; padding: 0 0.06em; }
+
+.sub {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.dots { display: flex; gap: 0.5rem; justify-content: center; margin-top: 2rem; }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--a2);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.dot:nth-child(2) { background: var(--a1); animation-delay: 0.2s; }
+.dot:nth-child(3) { background: var(--a3); animation-delay: 0.4s; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1); }
+}

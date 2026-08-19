@@ -1,0 +1,45 @@
+/* ---- RplusS base layer -------------------------------------------------- */
+
+:root {
+  /* Aurora theme tokens. Phase 3 swaps these per-theme at runtime. */
+  --bg: #07070c;
+  --surface: #10101a;
+  --text: #f2f2f7;
+  --muted: #8e8ea6;
+  --a1: #7b5cff;
+  --a2: #21d4fd;
+  --a3: #ff5cf0;
+
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Kills the grey flash box when tapping on mobile */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  /* Stops iOS Safari rubber-banding the whole shell */
+  overscroll-behavior: none;
+}
+
+/* Inputs below 16px make iOS auto-zoom the page on focus. Never go smaller. */
+input, textarea, select, button { font: inherit; font-size: max(16px, 1rem); }
+
+button { -webkit-appearance: none; appearance: none; border: 0; background: none; color: inherit; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
