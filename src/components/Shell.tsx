@@ -95,6 +95,9 @@ export function Shell() {
 
   return (
     <div className="shell">
+      {/* Slow-drifting colour behind every screen. Pure CSS gradients on one
+          composited layer, so it costs nothing per frame. */}
+      <div className="shell-ambient" aria-hidden="true" />
       <div className="shell-pane" ref={paneRef}>
         <Outlet />
       </div>

@@ -1,4 +1,5 @@
 .shell {
+  position: relative;
   /* dvh keeps the layout correct while Safari's address bar grows and shrinks. */
   height: 100dvh;
   display: grid;
@@ -7,8 +8,27 @@
   background: var(--bg);
 }
 
+.shell-ambient {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(32% 26% at 12% 8%, color-mix(in oklab, var(--a1) 26%, transparent), transparent 70%),
+    radial-gradient(30% 24% at 88% 14%, color-mix(in oklab, var(--a2) 20%, transparent), transparent 70%),
+    radial-gradient(38% 30% at 60% 96%, color-mix(in oklab, var(--a3) 18%, transparent), transparent 72%);
+  animation: ambient-drift 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes ambient-drift {
+  from { transform: translate3d(-2%, -1.5%, 0) scale(1); }
+  to   { transform: translate3d(2%, 1.5%, 0) scale(1.1); }
+}
+
 .shell-pane {
   position: relative;
+  z-index: 1;
   min-height: 0; /* lets the child own the scroll instead of the grid stretching */
   overflow: hidden;
   will-change: transform;
@@ -34,9 +54,15 @@
 
 .screen-title {
   margin: 0;
-  font-size: 1.9rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  /* Fades toward the accent so headings carry the theme without shouting. */
+  background: linear-gradient(120deg, var(--text) 35%, var(--a2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .screen-sub {
@@ -51,9 +77,12 @@
   display: grid;
   gap: 0.6rem;
   padding: 1.5rem 1.25rem;
-  border-radius: 1.1rem;
-  background: color-mix(in oklab, var(--surface) 80%, transparent);
-  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .stub h2 { margin: 0; font-size: 1rem; font-weight: 600; }

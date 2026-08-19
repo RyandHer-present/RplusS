@@ -5,8 +5,9 @@
   padding: 0.25rem;
   margin-bottom: 1rem;
   border-radius: 0.9rem;
-  background: color-mix(in oklab, var(--surface) 70%, transparent);
-  border: 1px solid var(--border);
+  background: var(--glass);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--hairline);
 }
 
 .owner-tab {

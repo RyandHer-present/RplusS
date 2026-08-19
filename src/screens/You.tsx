@@ -2,7 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { THEME_LIST } from '../theme/themes'
 import { useTheme } from '../theme/useTheme'
 import { USERS, useSession } from '../store/session'
+import { useState } from 'react'
 import { haptic, hapticsSupported } from '../lib/haptics'
+import { isMuted, setMuted, sfx } from '../lib/sound'
 import { signOutRemote } from '../lib/auth'
 import './You.css'
 
@@ -15,6 +17,7 @@ export default function You() {
 
   const me = user ? USERS[user] : null
   const navigate = useNavigate()
+  const [muted, setMutedState] = useState(isMuted())
 
   return (
     <div className="screen-scroll">
@@ -71,6 +74,28 @@ export default function You() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="panel">
+        <h2 className="panel-title">Sound</h2>
+        <p className="panel-note">Taps, sends and the unlock chime.</p>
+        <button
+          type="button"
+          className={`toggle ${muted ? '' : 'is-on'}`}
+          role="switch"
+          aria-checked={!muted}
+          onClick={() => {
+            const next = !muted
+            setMuted(next)
+            setMutedState(next)
+            haptic('select')
+            // Play the confirmation *after* unmuting, so turning it on is audible.
+            if (!next) sfx.key(2)
+          }}
+        >
+          <span className="toggle-label">{muted ? 'Off' : 'On'}</span>
+          <span className="toggle-track" aria-hidden="true"><span className="toggle-knob" /></span>
+        </button>
       </section>
 
       <section className="panel">

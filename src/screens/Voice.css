@@ -2,8 +2,9 @@
   padding: 1rem;
   margin-bottom: 1.25rem;
   border-radius: 1.1rem;
-  background: color-mix(in oklab, var(--surface) 82%, transparent);
-  border: 1px solid var(--border);
+  background: var(--glass);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--hairline);
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
@@ -103,7 +104,7 @@
   font-weight: 600;
   color: var(--muted);
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   transition: color 0.18s ease, background-color 0.18s ease;
 }
 
