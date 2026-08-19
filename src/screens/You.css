@@ -65,3 +65,25 @@
   transform: scale(0.97);
   background: color-mix(in oklab, var(--a3) 22%, transparent);
 }
+
+.panel.is-admin { border-color: color-mix(in oklab, #ffb347 40%, transparent); }
+
+.panel.is-admin .panel-title { color: #ffb347; }
+
+.panel-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: transform 0.16s ease;
+}
+
+.panel-link:active { transform: scale(0.98); }
+.panel-link svg { width: 1rem; height: 1rem; color: var(--muted); }

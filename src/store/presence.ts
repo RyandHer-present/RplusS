@@ -16,6 +16,15 @@ interface PresenceState {
 let channel: RealtimeChannel | null = null
 let typingTimer: number | undefined
 let lastSentTyping = false
+// Avoids writing a run of identical events when a tab is switched repeatedly.
+let lastLogged: 'online' | 'offline' | null = null
+
+/** Records comings and goings for the admin activity log. */
+async function logPresence(user: UserId, event: 'online' | 'offline') {
+  if (!supabase || lastLogged === event) return
+  lastLogged = event
+  await supabase.from('presence_log').insert({ user_id: user, event })
+}
 
 export const usePresence = create<PresenceState>()((set) => ({
   otherOnline: false,
@@ -66,19 +75,34 @@ export const usePresence = create<PresenceState>()((set) => ({
         if (status !== 'SUBSCRIBED') return
         await room.track({ online_at: new Date().toISOString() })
         await supabase!.from('users').update({ last_seen: new Date().toISOString() }).eq('id', me)
+        void logPresence(me, 'online')
       })
 
     // Presence alone treats a backgrounded tab as still connected, which would
     // show someone as online long after they put their phone down.
     const onVisibility = () => {
-      if (document.hidden) void room.untrack()
-      else void room.track({ online_at: new Date().toISOString() })
+      if (document.hidden) {
+        void room.untrack()
+        void logPresence(me, 'offline')
+      } else {
+        void room.track({ online_at: new Date().toISOString() })
+        void logPresence(me, 'online')
+      }
     }
+
+    // A closed tab never runs cleanup, so the departure is recorded here too.
+    const onLeave = () => {
+      void logPresence(me, 'offline')
+    }
+    window.addEventListener('pagehide', onLeave)
     document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onLeave)
       window.clearTimeout(typingTimer)
+      void logPresence(me, 'offline')
+      lastLogged = null
       channel = null
       void supabase!.removeChannel(room)
     }

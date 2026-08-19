@@ -13,6 +13,7 @@ export default function Lock() {
   const [pin, setPin] = useState('')
   const [status, setStatus] = useState<'idle' | 'checking' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [adminMode, setAdminMode] = useState(false)
   const signIn = useSession((s) => s.signIn)
 
   const root = useRef<HTMLDivElement>(null)
@@ -37,6 +38,25 @@ export default function Lock() {
       busy.current = true
       setStatus('checking')
       const result = await verifyPin(value)
+
+      // The corner is not decoration: an admin PIN typed on the normal screen
+      // is refused, and a personal PIN typed on the admin screen likewise.
+      if ('user' in result && (result.user === 'admin') !== adminMode) {
+        haptic('error')
+        setStatus('error')
+        setMessage('Wrong PIN')
+        gsap.fromTo(
+          dotsRef.current,
+          { x: 0 },
+          { x: 0, keyframes: { x: [-10, 9, -7, 5, -3, 0] }, duration: 0.5, ease: 'power2.out' },
+        )
+        window.setTimeout(() => {
+          setPin('')
+          setStatus('idle')
+          busy.current = false
+        }, 520)
+        return
+      }
 
       if ('user' in result) {
         haptic('success')
@@ -67,7 +87,7 @@ export default function Lock() {
         busy.current = false
       }, 520)
     },
-    [signIn],
+    [signIn, adminMode],
   )
 
   const press = useCallback(
@@ -105,15 +125,28 @@ export default function Lock() {
   }, [press])
 
   return (
-    <div className="lock" ref={root}>
+    <div className={`lock ${adminMode ? 'is-admin' : ''}`} ref={root}>
       <AuroraBackground className="lock-bg" />
+
+      {/* Deliberately unlabelled. Tapping it again returns to the normal screen. */}
+      <button
+        type="button"
+        className="lock-corner"
+        aria-label={adminMode ? 'Leave admin sign-in' : 'Admin sign-in'}
+        onClick={() => {
+          haptic('tap')
+          setPin('')
+          setMessage('')
+          setAdminMode((on) => !on)
+        }}
+      />
 
       <div className="lock-inner">
         <header className="lock-head">
           <h1 className="lock-mark">
             R<span>+</span>S
           </h1>
-          <p className="lock-names">Enter your PIN</p>
+          <p className="lock-names">{adminMode ? 'Admin' : 'Enter your PIN'}</p>
         </header>
 
         <div className="lock-entry">

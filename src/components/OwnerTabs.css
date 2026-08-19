@@ -1,0 +1,41 @@
+.owner-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1rem;
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  border: 1px solid var(--border);
+}
+
+.owner-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.2s ease, background-color 0.24s ease, transform 0.16s ease;
+  touch-action: manipulation;
+}
+
+.owner-tab:active { transform: scale(0.97); }
+
+.owner-tab.is-active {
+  color: var(--text);
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--a1) 45%, transparent),
+    color-mix(in oklab, var(--a3) 45%, transparent));
+}
+
+.owner-count {
+  padding: 0.02rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--text) 12%, transparent);
+}

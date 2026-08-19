@@ -113,6 +113,13 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Admin is checked last and lives in the secret store rather than the pins
+  // table, so it is not one of the two people and cannot be posted as.
+  if (!matched) {
+    const adminHash = Deno.env.get('ADMIN_PIN_HASH')
+    if (adminHash && (await verifyHash(pin, adminHash))) matched = 'admin'
+  }
+
   if (!matched) {
     const attempts = (record?.attempts ?? 0) + 1
     await admin.from('login_attempts').upsert({

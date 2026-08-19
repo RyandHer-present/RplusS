@@ -93,3 +93,22 @@
 
 .voice-who { font-size: 0.8rem; font-weight: 600; }
 .voice-when { font-size: 0.7rem; color: var(--muted); }
+
+.voice-head-right { display: inline-flex; align-items: center; gap: 0.6rem; }
+
+.voice-delete {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.voice-delete.is-confirming {
+  color: #fff;
+  background: #ff4d6a;
+  border-color: #ff4d6a;
+}

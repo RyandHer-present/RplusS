@@ -1,7 +1,7 @@
 import { supabase, supabaseConfigured } from './supabase'
-import type { UserId } from '../store/session'
+import type { Role } from '../store/session'
 
-export type VerifyResult = { user: UserId } | { error: string }
+export type VerifyResult = { user: Role } | { error: string }
 
 /**
  * The PIN is checked server-side by the `pin-login` Edge Function, which holds
@@ -28,7 +28,7 @@ export async function verifyPin(pin: string): Promise<VerifyResult> {
     }
 
     const { user, access_token, refresh_token } = data as {
-      user: UserId
+      user: Role
       access_token: string
       refresh_token: string
     }

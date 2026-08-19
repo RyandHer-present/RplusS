@@ -11,7 +11,8 @@ const DOUBLE_TAP_MS = 280
 
 interface Props {
   message: Message
-  me: UserId
+  /** Null in admin mode, where no message is "yours". */
+  me: UserId | null
   replyTarget?: Message
   reactions: Reaction[]
   showTime: boolean

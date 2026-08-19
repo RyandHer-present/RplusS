@@ -221,3 +221,14 @@
 .sheet-action:active { transform: scale(0.98); }
 .sheet-action.is-danger { color: #ff6b83; }
 .sheet-action.is-cancel { margin-top: 0.35rem; color: var(--muted); }
+
+.chat-readonly {
+  flex: none;
+  margin: 0;
+  padding: 0.9rem 1rem calc(env(safe-area-inset-bottom) + 0.9rem);
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--muted);
+  border-top: 1px solid color-mix(in oklab, var(--text) 8%, transparent);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+}

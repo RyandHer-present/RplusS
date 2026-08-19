@@ -1,83 +1,119 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
-import { useFits, postedToday, streakFor } from '../store/fits'
 import { MediaImage } from '../components/MediaImage'
-import { haptic } from '../lib/haptics'
-import { USERS, useSession } from '../store/session'
+import { MediaViewer } from '../components/MediaViewer'
+import { OwnerTabs } from '../components/OwnerTabs'
+import { useFits, streakFor } from '../store/fits'
+import { USERS, other, useSession, type UserId } from '../store/session'
+import { localDay } from '../lib/streak'
+import { dayLabel, timeLabel } from '../lib/dates'
 import { storageReady } from '../lib/storage'
+import { haptic } from '../lib/haptics'
 import type { Fit } from '../lib/types'
 import './Fits.css'
 
-function groupByDay(fits: Fit[]) {
-  const days = new Map<string, Fit[]>()
-  for (const fit of fits) {
-    const list = days.get(fit.day)
-    if (list) list.push(fit)
-    else days.set(fit.day, [fit])
-  }
-  return [...days.entries()]
-}
-
-function dayLabel(day: string) {
-  const [y, m, d] = day.split('-').map(Number)
-  const date = new Date(y, m - 1, d)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const diff = Math.round((today.getTime() - date.getTime()) / 86_400_000)
-  if (diff === 0) return 'Today'
-  if (diff === 1) return 'Yesterday'
-  if (diff < 7) return date.toLocaleDateString([], { weekday: 'long' })
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
-}
+const ORDER: UserId[] = ['ry', 'sarah']
 
 export default function Fits() {
-  const me = useSession((s) => s.user)!
-  const other = me === 'ry' ? 'sarah' : 'ry'
+  const me = useSession((s) => s.user)
+  const isAdmin = useSession((s) => s.isAdmin)
 
   const fits = useFits((s) => s.fits)
   const status = useFits((s) => s.status)
   const load = useFits((s) => s.load)
   const subscribe = useFits((s) => s.subscribe)
   const post = useFits((s) => s.post)
+  const remove = useFits((s) => s.remove)
   const uploading = useFits((s) => s.uploading)
   const uploadError = useFits((s) => s.uploadError)
+
   const fileRef = useRef<HTMLInputElement>(null)
+  const [open, setOpen] = useState<Fit | null>(null)
+  const [tab, setTab] = useState<UserId>(me ? other(me) : 'ry')
 
   useEffect(() => {
     void load()
   }, [load])
   useEffect(() => subscribe(), [subscribe])
 
-  const myStreak = useMemo(() => streakFor(fits, me), [fits, me])
-  const theirStreak = useMemo(() => streakFor(fits, other), [fits, other])
-  const done = useMemo(() => postedToday(fits, me), [fits, me])
-  const days = useMemo(() => groupByDay(fits), [fits])
+  const today = localDay()
+
+  const todays = useMemo(() => {
+    const map: Partial<Record<UserId, Fit>> = {}
+    for (const fit of fits) {
+      // Sorted newest first, so the first match for a day is the latest one.
+      if (fit.day === today && !map[fit.author_id]) map[fit.author_id] = fit
+    }
+    return map
+  }, [fits, today])
+
+  const streaks = useMemo(
+    () => ({ ry: streakFor(fits, 'ry'), sarah: streakFor(fits, 'sarah') }),
+    [fits],
+  )
+
+  const counts = useMemo(
+    () => ({
+      ry: fits.filter((f) => f.author_id === 'ry').length,
+      sarah: fits.filter((f) => f.author_id === 'sarah').length,
+    }),
+    [fits],
+  )
+
+  // Everything except today, newest day first.
+  const past = useMemo(() => {
+    const days = new Map<string, Fit[]>()
+    for (const fit of fits) {
+      if (fit.author_id !== tab || fit.day === today) continue
+      const list = days.get(fit.day)
+      if (list) list.push(fit)
+      else days.set(fit.day, [fit])
+    }
+    return [...days.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+  }, [fits, tab, today])
+
+  const doneToday = Boolean(me && todays[me])
 
   return (
     <div className="screen-scroll">
-      <ScreenHeader title="Fits" sub={done ? 'posted today' : 'not posted yet'} />
+      <ScreenHeader title="Fits" sub={doneToday ? 'posted today' : me ? 'not posted yet' : undefined} />
 
-      <section className="streaks">
-        <div className={`streak ${done ? 'is-active' : ''}`}>
-          <span className="streak-count">{myStreak}</span>
-          <span className="streak-label">your streak</span>
-          <span className="streak-unit">{myStreak === 1 ? 'day' : 'days'}</span>
-        </div>
-        <div className="streak is-other">
-          <span className="streak-count">{theirStreak}</span>
-          <span className="streak-label">{USERS[other].name}</span>
-          <span className="streak-unit">{theirStreak === 1 ? 'day' : 'days'}</span>
+      <section className="today">
+        <h2 className="today-label">Today</h2>
+        <div className="today-pair">
+          {ORDER.map((owner) => {
+            const fit = todays[owner]
+            const isMe = owner === me
+            return (
+              <div key={owner} className={`today-card ${fit ? 'has-fit' : ''}`}>
+                <button
+                  type="button"
+                  className="today-frame"
+                  disabled={!fit}
+                  onClick={() => {
+                    if (!fit) return
+                    haptic('tap')
+                    setOpen(fit)
+                  }}
+                >
+                  {fit?.media ? (
+                    <MediaImage media={fit.media} alt={`${USERS[owner].name} today`} />
+                  ) : (
+                    <span className="today-empty">{isMe ? 'Your turn' : 'Nothing yet'}</span>
+                  )}
+                </button>
+                <div className="today-meta">
+                  <span className="today-who">{isMe ? 'You' : USERS[owner].name}</span>
+                  <span className={`today-streak ${streaks[owner] > 0 ? 'is-live' : ''}`}>
+                    {streaks[owner]}
+                    <small>{streaks[owner] === 1 ? 'day' : 'days'}</small>
+                  </span>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </section>
-
-      {!done && (
-        <p className="fits-nudge">
-          {myStreak > 0
-            ? `Post today to keep ${myStreak} going.`
-            : 'Post a fit to start a streak.'}
-        </p>
-      )}
 
       <input
         ref={fileRef}
@@ -86,52 +122,81 @@ export default function Fits() {
         hidden
         onChange={(e) => {
           const file = e.target.files?.[0]
-          // Reset first, so picking the same photo twice still fires onChange.
           e.target.value = ''
-          if (file) void post(file, me)
+          if (file && me) void post(file, me)
         }}
       />
-      <button
-        type="button"
-        className="fits-post"
-        disabled={!storageReady || uploading}
-        onClick={() => {
-          haptic('select')
-          fileRef.current?.click()
-        }}
-      >
-        {!storageReady
-          ? 'Photo storage not connected yet'
-          : uploading
-            ? 'Uploading…'
-            : done
-              ? 'Add another'
-              : 'Post today’s fit'}
-      </button>
+
+      {me && (
+        <>
+          <button
+            type="button"
+            className="fits-post"
+            disabled={!storageReady || uploading}
+            onClick={() => {
+              haptic('select')
+              fileRef.current?.click()
+            }}
+          >
+            {!storageReady
+              ? 'Photo storage not connected yet'
+              : uploading
+                ? 'Uploading…'
+                : doneToday
+                  ? 'Replace today’s fit'
+                  : 'Post today’s fit'}
+          </button>
+
+          {!doneToday && streaks[me] > 0 && (
+            <p className="fits-nudge">Post today to keep {streaks[me]} going.</p>
+          )}
+        </>
+      )}
 
       {uploadError && <p className="fits-error">{uploadError}</p>}
 
-      {status === 'ready' && fits.length === 0 && (
-        <p className="fits-empty">Nothing posted yet.</p>
+      <h2 className="past-label">Past fits</h2>
+      <OwnerTabs value={tab} onChange={setTab} counts={counts} me={me} />
+
+      {status === 'ready' && past.length === 0 && (
+        <p className="fits-empty">Nothing further back yet.</p>
       )}
 
-      {days.map(([day, dayFits]) => (
+      {past.map(([day, dayFits]) => (
         <section key={day} className="fit-day">
-          <h2 className="fit-day-label">{dayLabel(day)}</h2>
+          <h3 className="fit-day-label">
+            {dayLabel(day)}
+            <span>{timeLabel(dayFits[0].created_at)}</span>
+          </h3>
           <div className="fit-grid">
             {dayFits.map((fit) => (
-              <figure key={fit.id} className="fit-card">
-                <div className="fit-image">
-                  {fit.media ? (
-                    <MediaImage media={fit.media} alt={fit.caption ?? 'Fit'} />
-                  ) : null}
-                </div>
-                <figcaption>{fit.author_id === me ? 'You' : USERS[fit.author_id].name}</figcaption>
-              </figure>
+              <button
+                key={fit.id}
+                type="button"
+                className="fit-card"
+                onClick={() => {
+                  haptic('tap')
+                  setOpen(fit)
+                }}
+              >
+                {fit.media && <MediaImage media={fit.media} alt="" />}
+              </button>
             ))}
           </div>
         </section>
       ))}
+
+      {open?.media && (
+        <MediaViewer
+          media={open.media}
+          caption={`${open.author_id === me ? 'You' : USERS[open.author_id].name} · ${dayLabel(open.day)}`}
+          onDelete={isAdmin ? () => {
+            void remove(open.id)
+            setOpen(null)
+          } : undefined}
+          onClose={() => setOpen(null)}
+        />
+      )}
     </div>
   )
 }

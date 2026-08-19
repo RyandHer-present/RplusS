@@ -354,3 +354,48 @@ export async function uploadAudio(
   if (error || !data) throw error ?? new Error('Could not save recording')
   return (data as Media).id
 }
+
+/* --------------------------------------------------------------- saving -- */
+
+/**
+ * Saves a file to the device.
+ *
+ * iOS is the awkward one: a plain download link often just opens the image in
+ * a tab rather than saving it, while the native share sheet offers "Save
+ * Image" and drops it straight into Photos. So the share sheet is tried first
+ * where it can handle files, and the anchor is the fallback everywhere else.
+ */
+export async function saveToDevice(media: Media, filename?: string): Promise<'shared' | 'downloaded'> {
+  const urls = await resolveMediaUrls([media.b2_key])
+  const url = urls[media.b2_key]
+  if (!url) throw new Error('Could not fetch that file')
+
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('Could not fetch that file')
+  const blob = await response.blob()
+
+  const ext = media.b2_key.split('.').pop() ?? 'bin'
+  const name = filename ?? `rpluss-${media.id.slice(0, 8)}.${ext}`
+  const file = new File([blob], name, { type: blob.type || 'application/octet-stream' })
+
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] })
+      return 'shared'
+    } catch (err) {
+      // A cancelled share is not a failure; do not fall through to a download.
+      if (err instanceof DOMException && err.name === 'AbortError') return 'shared'
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = objectUrl
+  anchor.download = name
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  // Revoking immediately can cancel the download on some browsers.
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000)
+  return 'downloaded'
+}

@@ -1,0 +1,170 @@
+.log-tabs {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.log-tabs::-webkit-scrollbar { display: none; }
+
+.log-tab {
+  flex: 1;
+  min-width: max-content;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.2s ease, background-color 0.22s ease;
+}
+
+.log-tab.is-active { color: var(--text); background: color-mix(in oklab, var(--a1) 40%, transparent); }
+
+.log-empty { color: var(--muted); font-size: 0.87rem; text-align: center; padding: 1.5rem 0; }
+.log-error { color: #ff6b83; font-size: 0.82rem; text-align: center; }
+
+.log-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* ---- message log ---- */
+
+.log-row {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.log-row header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+}
+
+.log-tag {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.log-tag.is-delete { color: #ff8f9f; background: rgba(255, 77, 106, 0.16); }
+.log-tag.is-edit { color: var(--a2); background: color-mix(in oklab, var(--a2) 16%, transparent); }
+
+.log-when { font-size: 0.68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.log-body {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* The superseded text is struck through so the before/after reads at a glance. */
+.log-body.is-before { color: var(--muted); text-decoration: line-through; }
+.log-body.is-after { color: var(--text); }
+
+.log-row footer { font-size: 0.7rem; color: var(--muted); }
+
+/* ---- activity and content lines ---- */
+
+.log-line {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+
+.log-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.log-line.is-on .log-dot { background: #35e08a; box-shadow: 0 0 7px rgba(53, 224, 138, 0.7); }
+.log-line.is-off .log-dot { background: #5b5b70; }
+.log-dot.is-add { background: var(--a2); }
+
+.log-line-who { font-weight: 600; }
+.log-line-what { color: var(--muted); }
+
+/* ---- stats ---- */
+
+.stats { display: flex; flex-direction: column; gap: 0.7rem; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+
+.stat-card {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.95rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.stat-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  background: linear-gradient(120deg, var(--text), var(--a2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.stat-label { font-size: 0.78rem; color: var(--text); }
+.stat-note { font-size: 0.68rem; color: var(--muted); }
+
+.stat-block {
+  padding: 0.95rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.stat-block h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+.stat-row span:last-child { color: var(--muted); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.stat-chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.stat-chip small { color: var(--muted); font-size: 0.7rem; }

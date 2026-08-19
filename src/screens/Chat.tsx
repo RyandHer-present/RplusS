@@ -5,7 +5,7 @@ import { Composer } from '../components/Composer'
 import { YouButton } from '../components/ScreenHeader'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
-import { USERS, useSession } from '../store/session'
+import { USERS, useSession, type UserId } from '../store/session'
 import { haptic } from '../lib/haptics'
 import type { Message } from '../lib/types'
 import './Chat.css'
@@ -25,8 +25,11 @@ function relativeTime(iso: string | null) {
 }
 
 export default function Chat() {
-  const me = useSession((s) => s.user)!
-  const other = me === 'ry' ? 'sarah' : 'ry'
+  const me = useSession((s) => s.user)
+  const isAdmin = useSession((s) => s.isAdmin)
+  // Admin is looking in from outside; the header still needs a subject, so it
+  // shows Sarah's side by convention.
+  const other: UserId = me === 'ry' ? 'sarah' : me === 'sarah' ? 'ry' : 'sarah'
 
   const messages = useChat((s) => s.messages)
   const reactions = useChat((s) => s.reactions)
@@ -54,14 +57,16 @@ export default function Chat() {
     void load()
   }, [load])
 
-  useEffect(() => subscribe(me), [subscribe, me])
-  useEffect(() => connect(me), [connect, me])
+  // Delivery receipts and presence both need an identity, so neither runs for
+  // admin — it observes without appearing online or acknowledging anything.
+  useEffect(() => (me ? subscribe(me) : undefined), [subscribe, me])
+  useEffect(() => (me ? connect(me) : undefined), [connect, me])
 
   // With a single conversation, having the chat open and focused *is* the read
   // signal — the same behaviour as every phone messaging app.
   useEffect(() => {
     const flush = () => {
-      if (document.hidden) return
+      if (document.hidden || !me) return
       const unseen = messages.filter((m) => m.sender_id !== me && !m.seen_at).map((m) => m.id)
       if (unseen.length) void markSeen(unseen)
     }
@@ -156,9 +161,9 @@ export default function Chat() {
                   reactions={reactions[message.id] ?? []}
                   showTime={showTime}
                   onReply={setReplyTo}
-                  onQuickReact={(m) => void toggleReaction(m.id, '❤️', me)}
+                  onQuickReact={(m) => me && void toggleReaction(m.id, '❤️', me)}
                   onMenu={setMenuFor}
-                  onRetry={(m) => void retry(m.id, me)}
+                  onRetry={(m) => me && void retry(m.id, me)}
                 />
               )
             }}
@@ -172,13 +177,13 @@ export default function Chat() {
         )}
       </div>
 
-      <Composer />
+      {me ? <Composer /> : <p className="chat-readonly">Admin view — read only</p>}
 
       {menuFor && (
         <div className="sheet-backdrop" onClick={() => setMenuFor(null)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog">
             <div className="sheet-emoji">
-              {QUICK_EMOJI.map((emoji) => (
+              {me && QUICK_EMOJI.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
@@ -225,7 +230,7 @@ export default function Chat() {
                 Copy
               </button>
             )}
-            {menuFor.sender_id === me && menuFor.body && !menuFor.pending && (
+            {(menuFor.sender_id === me || isAdmin) && menuFor.body && !menuFor.pending && (
               <button
                 type="button"
                 className="sheet-action"
@@ -237,7 +242,7 @@ export default function Chat() {
                 Edit
               </button>
             )}
-            {menuFor.sender_id === me && !menuFor.pending && (
+            {(menuFor.sender_id === me || isAdmin) && !menuFor.pending && (
               <button
                 type="button"
                 className="sheet-action is-danger"

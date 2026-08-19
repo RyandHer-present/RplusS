@@ -136,3 +136,36 @@
   opacity: 0.7;
   letter-spacing: 0.04em;
 }
+
+/* ---- admin entrance ---- */
+
+.lock-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  /* Comfortably tappable but visually nothing, and clear of the safe area. */
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Admin mode recolours the whole screen, so an accidental tap is obvious. */
+.lock.is-admin .lock-mark {
+  background: linear-gradient(120deg, #fff, #ffb347 50%, #ff5c5c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lock.is-admin .lock-names { color: #ffb347; letter-spacing: 0.35em; }
+
+.lock.is-admin .lock-dot.is-filled {
+  background: #ffb347;
+  border-color: #ffb347;
+  box-shadow: 0 0 18px rgba(255, 179, 71, 0.6);
+}
+
+.lock.is-admin .key:active { background: color-mix(in oklab, #ffb347 30%, transparent); }

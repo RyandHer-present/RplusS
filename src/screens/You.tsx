@@ -10,6 +10,7 @@ export default function You() {
   const themeId = useTheme((s) => s.themeId)
   const setTheme = useTheme((s) => s.setTheme)
   const user = useSession((s) => s.user)
+  const isAdmin = useSession((s) => s.isAdmin)
   const signOut = useSession((s) => s.signOut)
 
   const me = user ? USERS[user] : null
@@ -24,9 +25,24 @@ export default function You() {
         Back
       </button>
       <header className="screen-head">
-        <h1 className="screen-title">You</h1>
+        <h1 className="screen-title">{isAdmin ? 'Admin' : 'You'}</h1>
         {me && <p className="screen-sub">{me.name}</p>}
       </header>
+
+      {isAdmin && (
+        <section className="panel is-admin">
+          <h2 className="panel-title">Admin mode</h2>
+          <p className="panel-note">
+            Signed in as neither person. You can edit and remove anything, but not post.
+          </p>
+          <button type="button" className="panel-link" onClick={() => navigate('/logs')}>
+            Open logs
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </section>
+      )}
 
       <section className="panel">
         <h2 className="panel-title">Theme</h2>

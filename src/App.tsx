@@ -12,17 +12,18 @@ const Notes = lazy(() => import('./screens/Notes'))
 const Gallery = lazy(() => import('./screens/Gallery'))
 const Voice = lazy(() => import('./screens/Voice'))
 const Fits = lazy(() => import('./screens/Fits'))
+const Logs = lazy(() => import('./screens/Logs'))
 const You = lazy(() => import('./screens/You'))
 
 export default function App() {
-  const user = useSession((s) => s.user)
+  const role = useSession((s) => s.role)
   const signOut = useSession((s) => s.signOut)
 
   // The remembered user and the Supabase session are stored separately, so they
   // can drift — a revoked or expired session would otherwise leave the app
   // looking signed in while every request silently failed.
   useEffect(() => {
-    if (!user || !supabase) return
+    if (!role || !supabase) return
     let cancelled = false
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled && !data.session) signOut()
@@ -30,9 +31,9 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [user, signOut])
+  }, [role, signOut])
 
-  if (!user) return <Lock />
+  if (!role) return <Lock />
 
   return (
     <Suspense fallback={<div className="shell" />}>
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/fits" element={<Fits />} />
           <Route path="/voice" element={<Voice />} />
           <Route path="/you" element={<You />} />
+          <Route path="/logs" element={<Logs />} />
           <Route path="*" element={<Navigate to="/chat" replace />} />
         </Route>
       </Routes>

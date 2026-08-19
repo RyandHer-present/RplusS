@@ -23,7 +23,8 @@ function dayLabel(iso: string) {
 }
 
 export default function Voice() {
-  const me = useSession((s) => s.user)!
+  const me = useSession((s) => s.user)
+  const isAdmin = useSession((s) => s.isAdmin)
   const notes = useVoice((s) => s.notes)
   const status = useVoice((s) => s.status)
   const saving = useVoice((s) => s.saving)
@@ -32,6 +33,7 @@ export default function Voice() {
   const subscribe = useVoice((s) => s.subscribe)
   const save = useVoice((s) => s.save)
   const markListened = useVoice((s) => s.markListened)
+  const removeNote = useVoice((s) => s.remove)
 
   const recorderRef = useRef<VoiceRecorder | null>(null)
   const timerRef = useRef<number | undefined>(undefined)
@@ -40,6 +42,7 @@ export default function Voice() {
   const [elapsed, setElapsed] = useState(0)
   const [levels, setLevels] = useState<number[]>([])
   const [micError, setMicError] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<string | null>(null)
 
   useEffect(() => {
     void load()
@@ -86,7 +89,7 @@ export default function Voice() {
     setLevels([])
 
     // Anything under a second is almost always a mis-tap.
-    if (result.durationMs < 1000) return
+    if (result.durationMs < 1000 || !me) return
     await save(result, me)
   }
 
@@ -103,6 +106,7 @@ export default function Voice() {
     <div className="screen-scroll">
       <ScreenHeader title="Voice" sub={notes.length ? `${notes.length} saved` : undefined} />
 
+      {me && (
       <section className={`rec ${recording ? 'is-live' : ''}`}>
         {recording ? (
           <>
@@ -140,6 +144,7 @@ export default function Voice() {
           </button>
         )}
       </section>
+      )}
 
       {(micError || error) && <p className="rec-error">{micError ?? error}</p>}
 
@@ -152,7 +157,32 @@ export default function Voice() {
           <article key={note.id} className="voice-item">
             <header className="voice-item-head">
               <span className="voice-who">{note.author_id === me ? 'You' : USERS[note.author_id].name}</span>
-              <span className="voice-when">{dayLabel(note.created_at)}</span>
+              <span className="voice-head-right">
+                <span className="voice-when">{dayLabel(note.created_at)}</span>
+                {(note.author_id === me || isAdmin) && (
+                  <button
+                    type="button"
+                    className={`voice-delete ${confirming === note.id ? 'is-confirming' : ''}`}
+                    onClick={() => {
+                      // Two taps: a voice note cannot be recovered once gone.
+                      if (confirming !== note.id) {
+                        setConfirming(note.id)
+                        haptic('tap')
+                        window.setTimeout(
+                          () => setConfirming((c) => (c === note.id ? null : c)),
+                          3000,
+                        )
+                        return
+                      }
+                      haptic('error')
+                      void removeNote(note.id)
+                      setConfirming(null)
+                    }}
+                  >
+                    {confirming === note.id ? 'Sure?' : 'Delete'}
+                  </button>
+                )}
+              </span>
             </header>
             <VoicePlayer note={note} onPlayed={() => void markListened(note.id)} />
           </article>
