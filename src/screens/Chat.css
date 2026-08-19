@@ -50,7 +50,7 @@
   box-shadow: 0 0 8px rgba(53, 224, 138, 0.8);
 }
 
-.chat-who { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+.chat-who { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; flex: 1; }
 .chat-name { font-weight: 650; font-size: 1rem; }
 
 .chat-status {

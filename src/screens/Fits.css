@@ -1,0 +1,108 @@
+.streaks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.streak {
+  position: relative;
+  display: grid;
+  gap: 0.1rem;
+  padding: 1.1rem 1rem;
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* A live streak gets the accent bloom; a lapsed one stays flat and quiet. */
+.streak.is-active {
+  border-color: color-mix(in oklab, var(--a2) 45%, transparent);
+  background: radial-gradient(90% 120% at 15% 0%, color-mix(in oklab, var(--a2) 20%, transparent), transparent 70%),
+    color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+.streak-count {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(120deg, var(--text), var(--a2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.streak.is-other .streak-count {
+  background: linear-gradient(120deg, var(--text), var(--a3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.streak-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.streak-unit { font-size: 0.7rem; color: var(--muted); opacity: 0.7; }
+
+.fits-nudge {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.fits-post {
+  width: 100%;
+  padding: 0.95rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  transition: transform 0.16s ease, filter 0.2s ease;
+  touch-action: manipulation;
+}
+
+.fits-post:active { transform: scale(0.97); }
+
+.fits-post:disabled {
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  cursor: default;
+}
+
+.fits-empty { color: var(--muted); font-size: 0.87rem; text-align: center; }
+
+.fit-day { margin-bottom: 1.4rem; }
+
+.fit-day-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+}
+
+.fit-card { margin: 0; display: grid; gap: 0.3rem; }
+
+.fit-image {
+  aspect-ratio: 3 / 4;
+  border-radius: 0.85rem;
+  background: linear-gradient(140deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+}
+
+.fit-card figcaption { font-size: 0.72rem; color: var(--muted); }

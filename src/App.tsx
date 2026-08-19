@@ -11,6 +11,7 @@ const Chat = lazy(() => import('./screens/Chat'))
 const Notes = lazy(() => import('./screens/Notes'))
 const Gallery = lazy(() => import('./screens/Gallery'))
 const Voice = lazy(() => import('./screens/Voice'))
+const Fits = lazy(() => import('./screens/Fits'))
 const You = lazy(() => import('./screens/You'))
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/fits" element={<Fits />} />
           <Route path="/voice" element={<Voice />} />
           <Route path="/you" element={<You />} />
           <Route path="*" element={<Navigate to="/chat" replace />} />

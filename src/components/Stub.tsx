@@ -1,3 +1,5 @@
+import { ScreenHeader } from './ScreenHeader'
+
 interface Props {
   title: string
   sub?: string
@@ -10,10 +12,7 @@ interface Props {
 export function Stub({ title, sub, heading, body, phase }: Props) {
   return (
     <div className="screen-scroll">
-      <header className="screen-head">
-        <h1 className="screen-title">{title}</h1>
-        {sub && <p className="screen-sub">{sub}</p>}
-      </header>
+      <ScreenHeader title={title} sub={sub} />
       <section className="stub">
         <h2>{heading}</h2>
         <p>{body}</p>

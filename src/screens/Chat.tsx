@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import { MessageBubble } from '../components/MessageBubble'
 import { Composer } from '../components/Composer'
+import { YouButton } from '../components/ScreenHeader'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
 import { USERS, useSession } from '../store/session'
@@ -103,6 +104,7 @@ export default function Chat() {
           <span className="chat-name">{USERS[other].name}</span>
           <span className={`chat-status ${otherTyping ? 'is-typing' : ''}`}>{statusLine}</span>
         </div>
+        <YouButton />
       </header>
 
       {pinned.length > 0 && (

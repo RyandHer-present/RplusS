@@ -1,0 +1,50 @@
+.screen-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.screen-header-text { min-width: 0; }
+
+.screen-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.you-button {
+  width: 2.15rem;
+  height: 2.15rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  /* Soft ring so it reads as a control rather than an avatar decoration. */
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--text) 12%, transparent);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  touch-action: manipulation;
+}
+
+.you-button:active { transform: scale(0.9); }
+
+/* Back control on the profile screen, which is no longer a tab. */
+.screen-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.7rem 0.35rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  border: 1px solid var(--border);
+}
+
+.screen-back svg { width: 0.9rem; height: 0.9rem; }

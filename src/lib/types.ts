@@ -17,6 +17,30 @@ export interface Message {
   failed?: boolean
 }
 
+export interface Media {
+  id: string
+  owner_id: UserId
+  kind: 'image' | 'video' | 'audio' | 'doodle'
+  b2_key: string
+  thumb_key: string | null
+  blur: string | null
+  width: number | null
+  height: number | null
+  duration_ms: number | null
+  bytes: number | null
+  created_at: string
+}
+
+export interface Fit {
+  id: string
+  author_id: UserId
+  media_id: string
+  caption: string | null
+  day: string
+  created_at: string
+  media?: Media | null
+}
+
 export interface Reaction {
   message_id: string
   user_id: UserId

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { THEME_LIST } from '../theme/themes'
 import { useTheme } from '../theme/useTheme'
 import { USERS, useSession } from '../store/session'
@@ -12,9 +13,16 @@ export default function You() {
   const signOut = useSession((s) => s.signOut)
 
   const me = user ? USERS[user] : null
+  const navigate = useNavigate()
 
   return (
     <div className="screen-scroll">
+      <button type="button" className="screen-back" onClick={() => navigate(-1)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+        Back
+      </button>
       <header className="screen-head">
         <h1 className="screen-title">You</h1>
         {me && <p className="screen-sub">{me.name}</p>}

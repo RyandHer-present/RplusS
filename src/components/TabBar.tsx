@@ -49,22 +49,21 @@ export const TABS: Tab[] = [
     ),
   },
   {
+    to: '/fits',
+    label: 'Fits',
+    icon: (
+      <svg viewBox="0 0 24 24" {...stroke}>
+        <path d="M9 3.5 12 6l3-2.5 4.2 2.1a1.5 1.5 0 0 1 .8 1.6l-.7 3.3-2.3-.5V20a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-9.9l-2.3.5-.7-3.3a1.5 1.5 0 0 1 .8-1.6Z" />
+      </svg>
+    ),
+  },
+  {
     to: '/voice',
     label: 'Voice',
     icon: (
       <svg viewBox="0 0 24 24" {...stroke}>
         <rect x="9" y="2.5" width="6" height="11.5" rx="3" />
         <path d="M5 11.5a7 7 0 0 0 14 0M12 18.5V21.5" />
-      </svg>
-    ),
-  },
-  {
-    to: '/you',
-    label: 'You',
-    icon: (
-      <svg viewBox="0 0 24 24" {...stroke}>
-        <circle cx="12" cy="8.5" r="3.8" />
-        <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
       </svg>
     ),
   },
