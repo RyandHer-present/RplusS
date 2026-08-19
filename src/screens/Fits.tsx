@@ -60,17 +60,20 @@ export default function Fits() {
     [fits],
   )
 
-  // Everything except today, newest day first.
+  // Everything except the single photo already shown as today's highlight.
+  // Excluding the whole of today would hide any extra fits posted the same
+  // day, which is exactly what a second post is.
   const past = useMemo(() => {
+    const highlighted = todays[tab]?.id
     const days = new Map<string, Fit[]>()
     for (const fit of fits) {
-      if (fit.author_id !== tab || fit.day === today) continue
+      if (fit.author_id !== tab || fit.id === highlighted) continue
       const list = days.get(fit.day)
       if (list) list.push(fit)
       else days.set(fit.day, [fit])
     }
     return [...days.entries()].sort((a, b) => b[0].localeCompare(a[0]))
-  }, [fits, tab, today])
+  }, [fits, tab, todays])
 
   const doneToday = Boolean(me && todays[me])
 
@@ -159,7 +162,7 @@ export default function Fits() {
       <OwnerTabs value={tab} onChange={setTab} counts={counts} me={me} />
 
       {status === 'ready' && past.length === 0 && (
-        <p className="fits-empty">Nothing further back yet.</p>
+        <p className="fits-empty">Nothing else yet.</p>
       )}
 
       {past.map(([day, dayFits]) => (
