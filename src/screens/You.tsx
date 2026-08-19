@@ -2,6 +2,7 @@ import { THEME_LIST } from '../theme/themes'
 import { useTheme } from '../theme/useTheme'
 import { USERS, useSession } from '../store/session'
 import { haptic, hapticsSupported } from '../lib/haptics'
+import { signOutRemote } from '../lib/auth'
 import './You.css'
 
 export default function You() {
@@ -69,6 +70,7 @@ export default function You() {
         className="signout"
         onClick={() => {
           haptic('tap')
+          void signOutRemote()
           signOut()
         }}
       >

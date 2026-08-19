@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local environment — never commit keys
-.env
+# Local environment. `.env` holds only public values and IS committed;
+# anything genuinely secret goes in .env.local, which is not.
 .env.local
 .env.*.local

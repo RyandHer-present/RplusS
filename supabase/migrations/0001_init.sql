@@ -10,20 +10,6 @@
 
 create type user_id as enum ('ry', 'sarah');
 
--- ---------------------------------------------------------------- helpers --
-
--- Maps the Supabase Auth session to which of the two people is signed in.
-create or replace function current_app_user() returns user_id
-language sql stable security definer set search_path = public as $$
-  select id from users where auth_uid = auth.uid()
-$$;
-
--- True for either of the two real people; false for an anonymous caller.
-create or replace function is_member() returns boolean
-language sql stable as $$
-  select current_app_user() is not null
-$$;
-
 -- ------------------------------------------------------------------ users --
 
 create table users (
@@ -41,6 +27,20 @@ create table users (
 );
 
 insert into users (id, name) values ('ry', 'Ry'), ('sarah', 'Sarah');
+
+-- ---------------------------------------------------------------- helpers --
+
+-- Maps the Supabase Auth session to which of the two people is signed in.
+create or replace function current_app_user() returns user_id
+language sql stable security definer set search_path = public as $$
+  select id from users where auth_uid = auth.uid()
+$$;
+
+-- True for either of the two real people; false for an anonymous caller.
+create or replace function is_member() returns boolean
+language sql stable as $$
+  select current_app_user() is not null
+$$;
 
 -- ------------------------------------------------------------------ media --
 -- Rows describe files living in Backblaze B2; the bytes are never in Postgres.
@@ -223,3 +223,24 @@ alter publication supabase_realtime add table notes;
 alter publication supabase_realtime add table media;
 alter publication supabase_realtime add table voice_notes;
 alter publication supabase_realtime add table users;
+
+-- ---------------------------------------------------------------- grants --
+-- Supabase's default grants do not apply to tables created through the
+-- Management API, so they are set explicitly. Without these, even the service
+-- role gets "permission denied" regardless of RLS.
+
+grant usage on schema public to anon, authenticated, service_role;
+
+grant all privileges on all tables    in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+grant all privileges on all functions in schema public to service_role;
+
+grant select, insert, update, delete on
+  users, media, messages, reactions, notes, voice_notes, capsules, daily_activity
+  to authenticated;
+
+-- `pins` and `login_attempts` are intentionally excluded above. No grant means
+-- a signed-in client cannot read them even if a policy were added by mistake.
+revoke all on pins, login_attempts from anon, authenticated;
+
+grant execute on function current_app_user(), is_member() to authenticated;

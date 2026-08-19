@@ -97,7 +97,13 @@ Deno.serve(async (req) => {
   }
 
   // --- check the PIN ------------------------------------------------------
-  const { data: pins } = await admin.from('pins').select('user_id, pin_hash')
+  const { data: pins, error: pinsError } = await admin.from('pins').select('user_id, pin_hash')
+
+  if (pinsError || !pins?.length) {
+    // Deliberately vague to the caller; the detail belongs in the function logs.
+    console.error('pins lookup failed', pinsError)
+    return new Response(JSON.stringify({ error: 'Server unavailable' }), { status: 500, headers })
+  }
 
   let matched: string | null = null
   for (const row of pins ?? []) {

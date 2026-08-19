@@ -1,34 +1,64 @@
+import { supabase, supabaseConfigured } from './supabase'
 import type { UserId } from '../store/session'
 
 export type VerifyResult = { user: UserId } | { error: string }
 
 /**
- * PIN verification.
+ * The PIN is checked server-side by the `pin-login` Edge Function, which holds
+ * the hashes and the rate limiting. It is never compared in the browser, and it
+ * appears nowhere in this repo or the deployed bundle.
  *
- * Phase 2 points this at a Supabase Edge Function that checks a bcrypt hash and
- * mints a session JWT. Until that exists there is a local dev path, but the PINs
- * are read from `.env.local` (gitignored) rather than written here — this repo
- * and its built bundle are both public, so a literal PIN in source would leak.
- *
- * With no env values configured, sign-in is simply unavailable. That is
- * deliberate: the deployed Phase 3 build should not have a working lock.
+ * On success the function returns a real Supabase session, which we install
+ * here so every later request carries a proper identity for RLS to check.
  */
-const DEV_PINS: Record<string, UserId> = {}
-
-if (import.meta.env.VITE_DEV_PIN_RY) DEV_PINS[import.meta.env.VITE_DEV_PIN_RY] = 'ry'
-if (import.meta.env.VITE_DEV_PIN_SARAH) DEV_PINS[import.meta.env.VITE_DEV_PIN_SARAH] = 'sarah'
-
-export const authConfigured = Object.keys(DEV_PINS).length > 0
+export const authConfigured = supabaseConfigured
 
 export async function verifyPin(pin: string): Promise<VerifyResult> {
-  // Matches realistic network latency so the UI timing we tune now stays honest
-  // once this becomes a real round trip.
-  await new Promise((r) => setTimeout(r, 260))
+  if (!supabase) return { error: 'Not connected' }
 
-  if (!authConfigured) {
-    return { error: 'Not connected yet' }
+  try {
+    const { data, error } = await supabase.functions.invoke('pin-login', {
+      body: { pin },
+    })
+
+    if (error) {
+      // Non-2xx responses land here; the body still carries our message.
+      const message = await readFunctionError(error)
+      return { error: message }
+    }
+
+    const { user, access_token, refresh_token } = data as {
+      user: UserId
+      access_token: string
+      refresh_token: string
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    })
+    if (sessionError) return { error: 'Could not start session' }
+
+    return { user }
+  } catch {
+    return { error: 'No connection' }
   }
+}
 
-  const user = DEV_PINS[pin]
-  return user ? { user } : { error: 'Wrong PIN' }
+/** Pulls the server's message out of a FunctionsHttpError without leaking internals. */
+async function readFunctionError(error: unknown): Promise<string> {
+  const context = (error as { context?: Response }).context
+  if (context && typeof context.json === 'function') {
+    try {
+      const body = (await context.json()) as { error?: string }
+      if (body?.error) return body.error
+    } catch {
+      // Fall through to the generic message.
+    }
+  }
+  return 'Something went wrong'
+}
+
+export async function signOutRemote() {
+  await supabase?.auth.signOut()
 }
