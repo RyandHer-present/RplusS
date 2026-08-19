@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { useNotes, NOTE_COLORS, type Note, type NoteColor } from '../store/notes'
+import { useCapsules, untilLabel } from '../store/capsules'
 import { USERS, useSession } from '../store/session'
 import { groupByDate, dayLabel, timeLabel } from '../lib/dates'
 import { haptic } from '../lib/haptics'
@@ -136,11 +137,22 @@ export default function Notes() {
 
   const [draft, setDraft] = useState<DraftState | null>(null)
   const [reading, setReading] = useState<Note | null>(null)
+  const [capsuleDraft, setCapsuleDraft] = useState<{ body: string; when: string } | null>(null)
+  const [openedText, setOpenedText] = useState<{ id: string; text: string } | null>(null)
+
+  const capsules = useCapsules((s) => s.capsules)
+  const loadCapsules = useCapsules((s) => s.load)
+  const createCapsule = useCapsules((s) => s.create)
+  const openCapsule = useCapsules((s) => s.open)
+  const removeCapsule = useCapsules((s) => s.remove)
 
   useEffect(() => {
     void load()
   }, [load])
   useEffect(() => subscribe(), [subscribe])
+  useEffect(() => {
+    void loadCapsules()
+  }, [loadCapsules])
 
   const pinned = useMemo(() => notes.filter((n) => n.pinned), [notes])
   const rest = useMemo(() => notes.filter((n) => !n.pinned), [notes])
@@ -231,6 +243,77 @@ export default function Notes() {
         </button>
       )}
 
+      {me && (
+        <button
+          type="button"
+          className="capsule-new"
+          onClick={() => {
+            haptic('select')
+            // Defaults a month out, which is the common case.
+            const when = new Date()
+            when.setMonth(when.getMonth() + 1)
+            setCapsuleDraft({ body: '', when: when.toISOString().slice(0, 10) })
+          }}
+        >
+          Lock something for later
+        </button>
+      )}
+
+      {capsules.length > 0 && (
+        <section className="note-group">
+          <h2 className="note-group-label">Time capsules</h2>
+          <div className="note-list">
+            {capsules.map((capsule) => {
+              const until = untilLabel(capsule.unlock_at)
+              const unlocked = !until
+              const shown = openedText?.id === capsule.id ? openedText.text : null
+              return (
+                <button
+                  key={capsule.id}
+                  type="button"
+                  className={`capsule ${unlocked ? 'is-open' : ''}`}
+                  onClick={async () => {
+                    if (!unlocked) {
+                      haptic('error')
+                      return
+                    }
+                    haptic('success')
+                    const text = await openCapsule(capsule.id)
+                    if (text) setOpenedText({ id: capsule.id, text })
+                  }}
+                >
+                  <span className="capsule-head">
+                    <span className="capsule-icon">{unlocked ? '\u{1F513}' : '\u{1F512}'}</span>
+                    <span className="capsule-who">
+                      {capsule.author_id === me ? 'You' : USERS[capsule.author_id].name}
+                    </span>
+                    <span className="capsule-when">
+                      {until ?? new Date(capsule.unlock_at).toLocaleDateString()}
+                    </span>
+                  </span>
+                  <span className="capsule-body">
+                    {shown ?? (unlocked ? 'Tap to open' : 'Sealed until then')}
+                  </span>
+                  {capsule.author_id === me && (
+                    <span
+                      className="capsule-scrap"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void removeCapsule(capsule.id)
+                      }}
+                    >
+                      Remove
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {status === 'ready' && notes.length === 0 && (
         <p className="note-empty">Nothing written yet.</p>
       )}
@@ -266,6 +349,52 @@ export default function Notes() {
               : undefined
           }
         />
+      )}
+
+      {capsuleDraft && me && (
+        <div className="note-editor" role="dialog" aria-modal="true">
+          <header className="note-editor-bar">
+            <button type="button" className="note-cancel" onClick={() => setCapsuleDraft(null)}>
+              Cancel
+            </button>
+            <span className="note-editor-who">Time capsule</span>
+            <button
+              type="button"
+              className="note-save"
+              disabled={!capsuleDraft.body.trim()}
+              onClick={async () => {
+                sfx.send()
+                await createCapsule(
+                  capsuleDraft.body,
+                  new Date(`${capsuleDraft.when}T09:00:00`).toISOString(),
+                  me,
+                )
+                setCapsuleDraft(null)
+              }}
+            >
+              Lock
+            </button>
+          </header>
+
+          <div className="note-editor-body">
+            <label className="capsule-date">
+              Opens on
+              <input
+                type="date"
+                value={capsuleDraft.when}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setCapsuleDraft({ ...capsuleDraft, when: e.target.value })}
+              />
+            </label>
+            <textarea
+              className="note-body-input"
+              placeholder="Neither of you can read this until then."
+              value={capsuleDraft.body}
+              autoFocus
+              onChange={(e) => setCapsuleDraft({ ...capsuleDraft, body: e.target.value })}
+            />
+          </div>
+        </div>
       )}
 
       {reading && (
