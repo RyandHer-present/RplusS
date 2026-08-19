@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { resolveMediaUrls, saveToDevice } from '../lib/media'
 import { haptic } from '../lib/haptics'
 import type { Media } from '../lib/types'
@@ -52,7 +53,10 @@ export function MediaViewer({ media, caption, onClose, onDelete }: Props) {
     }
   }
 
-  return (
+  // Rendered into <body>. The scroll pane sets will-change: transform, which
+  // makes it a containing block for fixed positioning — without the portal the
+  // "full screen" overlay is trapped inside the pane and sits under the tab bar.
+  return createPortal(
     <div className="viewer" role="dialog" aria-modal="true">
       <button type="button" className="viewer-close" onClick={onClose} aria-label="Close">
         ✕
@@ -111,6 +115,7 @@ export function MediaViewer({ media, caption, onClose, onDelete }: Props) {
           </button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
