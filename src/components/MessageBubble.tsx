@@ -151,8 +151,9 @@ export const MessageBubble = memo(function MessageBubble({
           </div>
         )}
 
-        {(showTime || mine) && (
+        {(showTime || mine || message.edited_at) && (
           <div className="meta">
+            {message.edited_at && <span className="edited">edited</span>}
             {showTime && <span>{formatTime(message.created_at)}</span>}
             {mine && <span className={`receipt is-${receiptLabel(message).toLowerCase()}`}>{receiptLabel(message)}</span>}
             {message.failed && (

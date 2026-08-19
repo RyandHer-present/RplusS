@@ -149,3 +149,5 @@
   color: var(--a2);
   text-decoration: underline;
 }
+
+.edited { font-style: italic; opacity: 0.75; }

@@ -38,6 +38,8 @@ export default function Chat() {
   const togglePin = useChat((s) => s.togglePin)
   const markSeen = useChat((s) => s.markSeen)
   const retry = useChat((s) => s.retry)
+  const setEditing = useChat((s) => s.setEditing)
+  const unsend = useChat((s) => s.unsend)
 
   const connect = usePresence((s) => s.connect)
   const otherOnline = usePresence((s) => s.otherOnline)
@@ -129,6 +131,7 @@ export default function Chat() {
         {messages.length > 0 && (
           <Virtuoso
             ref={listRef}
+            className="chat-scroll"
             data={messages}
             followOutput="smooth"
             initialTopMostItemIndex={messages.length - 1}
@@ -218,6 +221,31 @@ export default function Chat() {
                 }}
               >
                 Copy
+              </button>
+            )}
+            {menuFor.sender_id === me && menuFor.body && !menuFor.pending && (
+              <button
+                type="button"
+                className="sheet-action"
+                onClick={() => {
+                  setEditing(menuFor)
+                  setMenuFor(null)
+                }}
+              >
+                Edit
+              </button>
+            )}
+            {menuFor.sender_id === me && !menuFor.pending && (
+              <button
+                type="button"
+                className="sheet-action is-danger"
+                onClick={() => {
+                  haptic('error')
+                  void unsend(menuFor.id)
+                  setMenuFor(null)
+                }}
+              >
+                Unsend
               </button>
             )}
             <button type="button" className="sheet-action is-cancel" onClick={() => setMenuFor(null)}>

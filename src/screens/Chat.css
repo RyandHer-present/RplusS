@@ -102,7 +102,10 @@
   padding-top: 0.5rem;
 }
 
-.chat-list > div { height: 100%; }
+/* Only the virtualised scroller fills the height. This was previously a
+   blanket `.chat-list > div` rule, which also stretched the typing bubble into
+   a full-height column on top of the messages. */
+.chat-scroll { height: 100%; }
 
 .chat-hint { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 2rem; }
 
@@ -216,4 +219,5 @@
 }
 
 .sheet-action:active { transform: scale(0.98); }
+.sheet-action.is-danger { color: #ff6b83; }
 .sheet-action.is-cancel { margin-top: 0.35rem; color: var(--muted); }

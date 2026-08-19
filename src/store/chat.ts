@@ -12,6 +12,7 @@ interface ChatState {
   status: 'idle' | 'loading' | 'ready' | 'error'
   error: string | null
   replyTo: Message | null
+  editing: Message | null
   hasMore: boolean
 
   load: () => Promise<void>
@@ -19,6 +20,9 @@ interface ChatState {
   send: (body: string, me: UserId) => Promise<void>
   retry: (tempId: string, me: UserId) => Promise<void>
   setReplyTo: (message: Message | null) => void
+  setEditing: (message: Message | null) => void
+  saveEdit: (id: string, body: string) => Promise<void>
+  unsend: (id: string) => Promise<void>
   toggleReaction: (messageId: string, emoji: string, me: UserId) => Promise<void>
   togglePin: (messageId: string) => Promise<void>
   markSeen: (ids: string[]) => Promise<void>
@@ -38,6 +42,7 @@ export const useChat = create<ChatState>()((set, get) => ({
   status: 'idle',
   error: null,
   replyTo: null,
+  editing: null,
   hasMore: false,
 
   load: async () => {
@@ -97,6 +102,7 @@ export const useChat = create<ChatState>()((set, get) => ({
       created_at: new Date().toISOString(),
       delivered_at: null,
       seen_at: null,
+      edited_at: null,
       pending: true,
     }
     set((s) => ({ messages: [...s.messages, optimistic], replyTo: null }))
@@ -131,6 +137,37 @@ export const useChat = create<ChatState>()((set, get) => ({
   },
 
   setReplyTo: (message) => set({ replyTo: message }),
+
+  setEditing: (message) => set({ editing: message }),
+
+  saveEdit: async (id, body) => {
+    const trimmed = body.trim()
+    if (!supabase || !trimmed) return
+
+    const previous = get().messages.find((m) => m.id === id)
+    const now = new Date().toISOString()
+    set((s) => ({
+      messages: s.messages.map((m) => (m.id === id ? { ...m, body: trimmed, edited_at: now } : m)),
+      editing: null,
+    }))
+
+    const { error } = await supabase.from('messages').update({ body: trimmed }).eq('id', id)
+    // The database rejects edits from anyone but the sender; put it back if so.
+    if (error && previous) {
+      set((s) => ({ messages: s.messages.map((m) => (m.id === id ? previous : m)) }))
+    }
+  },
+
+  unsend: async (id) => {
+    if (!supabase) return
+    const previous = get().messages.find((m) => m.id === id)
+    set((s) => ({ messages: s.messages.filter((m) => m.id !== id) }))
+
+    const { error } = await supabase.from('messages').delete().eq('id', id)
+    if (error && previous) {
+      set((s) => ({ messages: upsert(s.messages, previous) }))
+    }
+  },
 
   toggleReaction: async (messageId, emoji, me) => {
     if (!supabase) return
@@ -198,6 +235,11 @@ export const useChat = create<ChatState>()((set, get) => ({
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
         set((s) => ({ messages: upsert(s.messages, payload.new as Message) }))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
+        // Unsends arrive with only the primary key, which is all we need.
+        const { id } = payload.old as { id: string }
+        set((s) => ({ messages: s.messages.filter((m) => m.id !== id) }))
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' }, (payload) => {
         const r = payload.new as Reaction

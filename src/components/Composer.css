@@ -21,6 +21,9 @@
   to   { transform: translateY(0); opacity: 1; }
 }
 
+.reply-bar.is-editing .reply-info { border-left-color: var(--a1); }
+.reply-bar.is-editing .reply-to { color: var(--a1); }
+
 .reply-info {
   flex: 1;
   min-width: 0;
