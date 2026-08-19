@@ -11,6 +11,7 @@ export interface Message {
   delivered_at: string | null
   seen_at: string | null
   edited_at: string | null
+  media?: Media | null
   /** Client-only: set while an optimistic message is still in flight. */
   pending?: boolean
   /** Client-only: the send failed and can be retried. */

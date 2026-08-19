@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import { MessageBubble } from '../components/MessageBubble'
 import { Composer } from '../components/Composer'
+import { MediaViewer } from '../components/MediaViewer'
 import { YouButton } from '../components/ScreenHeader'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
@@ -53,6 +54,7 @@ export default function Chat() {
 
   const theirMood = usePeople((s) => s.people[other]?.mood_color)
   const [menuFor, setMenuFor] = useState<Message | null>(null)
+  const [viewing, setViewing] = useState<Message | null>(null)
   const listRef = useRef<VirtuosoHandle>(null)
 
   useEffect(() => {
@@ -171,6 +173,7 @@ export default function Chat() {
                   onQuickReact={(m) => me && void toggleReaction(m.id, '❤️', me)}
                   onMenu={setMenuFor}
                   onRetry={(m) => me && void retry(m.id, me)}
+                  onOpenMedia={setViewing}
                 />
               )
             }}
@@ -185,6 +188,14 @@ export default function Chat() {
       </div>
 
       {me ? <Composer /> : <p className="chat-readonly">Admin view — read only</p>}
+
+      {viewing?.media && (
+        <MediaViewer
+          media={viewing.media}
+          caption={viewing.sender_id === me ? 'You' : USERS[viewing.sender_id].name}
+          onClose={() => setViewing(null)}
+        />
+      )}
 
       {menuFor && (
         <div className="sheet-backdrop" onClick={() => setMenuFor(null)}>

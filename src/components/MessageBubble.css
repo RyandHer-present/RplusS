@@ -151,3 +151,16 @@
 }
 
 .edited { font-style: italic; opacity: 0.75; }
+
+.bubble.has-media { padding: 0.3rem; }
+
+.bubble-media {
+  display: block;
+  width: min(15rem, 62vw);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: var(--surface-2);
+}
+
+.bubble.has-media .bubble-body { padding: 0.35rem 0.55rem 0.25rem; }

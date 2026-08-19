@@ -1,6 +1,7 @@
 import { memo, useRef, useState } from 'react'
 import type { Message, Reaction } from '../lib/types'
 import { USERS, type UserId } from '../store/session'
+import { MediaImage } from './MediaImage'
 import { haptic } from '../lib/haptics'
 import './MessageBubble.css'
 
@@ -20,6 +21,7 @@ interface Props {
   onQuickReact: (message: Message) => void
   onMenu: (message: Message) => void
   onRetry: (message: Message) => void
+  onOpenMedia: (message: Message) => void
 }
 
 function receiptLabel(message: Message) {
@@ -44,6 +46,7 @@ export const MessageBubble = memo(function MessageBubble({
   onQuickReact,
   onMenu,
   onRetry,
+  onOpenMedia,
 }: Props) {
   const mine = message.sender_id === me
   const [offset, setOffset] = useState(0)
@@ -131,7 +134,11 @@ export const MessageBubble = memo(function MessageBubble({
           </div>
         )}
 
-        <div className={`bubble ${message.failed ? 'is-failed' : ''} ${message.pending ? 'is-pending' : ''}`}>
+        <div
+          className={`bubble ${message.failed ? 'is-failed' : ''} ${message.pending ? 'is-pending' : ''} ${
+            message.media ? 'has-media' : ''
+          }`}
+        >
           {message.pinned && (
             <span className="pin-flag" aria-label="Pinned">
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -139,7 +146,19 @@ export const MessageBubble = memo(function MessageBubble({
               </svg>
             </span>
           )}
-          <p className="bubble-body">{message.body}</p>
+          {message.media && (
+            <button
+              type="button"
+              className="bubble-media"
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenMedia(message)
+              }}
+            >
+              <MediaImage media={message.media} size="thumb" alt="" />
+            </button>
+          )}
+          {message.body && <p className="bubble-body">{message.body}</p>}
         </div>
 
         {reactions.length > 0 && (

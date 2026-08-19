@@ -17,7 +17,7 @@ interface ChatState {
 
   load: () => Promise<void>
   loadOlder: () => Promise<void>
-  send: (body: string, me: UserId) => Promise<void>
+  send: (body: string, me: UserId, mediaId?: string) => Promise<void>
   retry: (tempId: string, me: UserId) => Promise<void>
   setReplyTo: (message: Message | null) => void
   setEditing: (message: Message | null) => void
@@ -50,7 +50,7 @@ export const useChat = create<ChatState>()((set, get) => ({
     set({ status: 'loading', error: null })
 
     const [messagesResult, reactionsResult] = await Promise.all([
-      supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(PAGE_SIZE),
+      supabase.from('messages').select('*, media(*)').order('created_at', { ascending: false }).limit(PAGE_SIZE),
       supabase.from('reactions').select('*'),
     ])
 
@@ -74,7 +74,7 @@ export const useChat = create<ChatState>()((set, get) => ({
 
     const { data, error } = await supabase
       .from('messages')
-      .select('*')
+      .select('*, media(*)')
       .lt('created_at', messages[0].created_at)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE)
@@ -84,9 +84,9 @@ export const useChat = create<ChatState>()((set, get) => ({
     set({ messages: [...older, ...messages], hasMore: data.length === PAGE_SIZE })
   },
 
-  send: async (body, me) => {
+  send: async (body, me, mediaId) => {
     const trimmed = body.trim()
-    if (!trimmed || !supabase) return
+    if ((!trimmed && !mediaId) || !supabase) return
 
     const replyTo = get().replyTo
     const tempId = `temp-${crypto.randomUUID()}`
@@ -96,7 +96,7 @@ export const useChat = create<ChatState>()((set, get) => ({
       id: tempId,
       sender_id: me,
       body: trimmed,
-      media_id: null,
+      media_id: mediaId ?? null,
       reply_to_id: replyTo?.id ?? null,
       pinned: false,
       created_at: new Date().toISOString(),
@@ -109,8 +109,8 @@ export const useChat = create<ChatState>()((set, get) => ({
 
     const { data, error } = await supabase
       .from('messages')
-      .insert({ sender_id: me, body: trimmed, reply_to_id: optimistic.reply_to_id })
-      .select()
+      .insert({ sender_id: me, body: trimmed || null, media_id: mediaId ?? null, reply_to_id: optimistic.reply_to_id })
+      .select('*, media(*)')
       .single()
 
     if (error || !data) {
@@ -221,7 +221,10 @@ export const useChat = create<ChatState>()((set, get) => ({
       .channel('db-chat')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const message = payload.new as Message
-        set((s) => ({ messages: upsert(s.messages, message) }))
+        set((s) => {
+          const existing = s.messages.find((m) => m.id === message.id)
+          return { messages: upsert(s.messages, { ...message, media: existing?.media ?? undefined }) }
+        })
 
         // Delivery is acknowledged by the recipient's client, which is the only
         // side that can actually know the message arrived.

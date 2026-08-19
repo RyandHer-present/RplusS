@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { DoodlePad } from './DoodlePad'
+import { uploadImage } from '../lib/media'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
 import { USERS, useSession } from '../store/session'
@@ -18,6 +20,23 @@ export function Composer() {
   const saveEdit = useChat((s) => s.saveEdit)
   const setTyping = usePresence((s) => s.setTyping)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [attaching, setAttaching] = useState(false)
+  const [doodling, setDoodling] = useState(false)
+
+  // Shared by the photo picker and the doodle pad: compress, upload, then send
+  // the message that points at it.
+  const sendImage = async (file: File) => {
+    if (!me) return
+    setAttaching(true)
+    try {
+      const mediaId = await uploadImage(file, me)
+      await send('', me, mediaId)
+      setDoodling(false)
+    } finally {
+      setAttaching(false)
+    }
+  }
 
   // Grow with the content instead of scrolling a one-line box.
   useEffect(() => {
@@ -86,6 +105,45 @@ export function Composer() {
       )}
 
       <div className="composer-row">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (file) void sendImage(file)
+          }}
+        />
+        <button
+          type="button"
+          className="composer-attach"
+          disabled={attaching}
+          aria-label="Add a photo"
+          onClick={() => {
+            haptic('select')
+            fileRef.current?.click()
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+            <path d="M12 5.5v13M5.5 12h13" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="composer-attach"
+          disabled={attaching}
+          aria-label="Doodle"
+          onClick={() => {
+            haptic('select')
+            setDoodling(true)
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15.5 4.5l4 4L8 20H4v-4z" />
+          </svg>
+        </button>
         <textarea
           ref={inputRef}
           className="composer-input"
@@ -124,6 +182,14 @@ export function Composer() {
           </svg>
         </button>
       </div>
+
+      {doodling && (
+        <DoodlePad
+          busy={attaching}
+          onClose={() => setDoodling(false)}
+          onSend={(file) => void sendImage(file)}
+        />
+      )}
     </div>
   )
 }

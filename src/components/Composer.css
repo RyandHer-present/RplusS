@@ -106,3 +106,19 @@
 
 .send:active { transform: scale(0.9); }
 .send:disabled { cursor: default; }
+
+.composer-attach {
+  flex: none;
+  width: 2.3rem;
+  height: 2.3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-2);
+  transition: transform 0.16s ease, color 0.2s ease;
+}
+
+.composer-attach:active { transform: scale(0.9); color: var(--a2); }
+.composer-attach:disabled { opacity: 0.5; }
+.composer-attach svg { width: 1.15rem; height: 1.15rem; }
