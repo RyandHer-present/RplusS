@@ -236,3 +236,14 @@
 .avatar.has-mood {
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--mood), 0 0 16px color-mix(in oklab, var(--mood) 50%, transparent);
 }
+
+.chat-queued {
+  flex: none;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #ffb347;
+  background: rgba(255, 179, 71, 0.14);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+}

@@ -45,6 +45,8 @@ export default function Chat() {
   const markSeen = useChat((s) => s.markSeen)
   const retry = useChat((s) => s.retry)
   const setEditing = useChat((s) => s.setEditing)
+  const queued = useChat((s) => s.queued)
+  const watchConnection = useChat((s) => s.watchConnection)
   const unsend = useChat((s) => s.unsend)
 
   const connect = usePresence((s) => s.connect)
@@ -65,6 +67,7 @@ export default function Chat() {
   // admin — it observes without appearing online or acknowledging anything.
   useEffect(() => (me ? subscribe(me) : undefined), [subscribe, me])
   useEffect(() => (me ? connect(me) : undefined), [connect, me])
+  useEffect(() => (me ? watchConnection(me) : undefined), [watchConnection, me])
 
   // With a single conversation, having the chat open and focused *is* the read
   // signal — the same behaviour as every phone messaging app.
@@ -118,6 +121,11 @@ export default function Chat() {
           <span className="chat-name">{USERS[other].name}</span>
           <span className={`chat-status ${otherTyping ? 'is-typing' : ''}`}>{statusLine}</span>
         </div>
+        {queued > 0 && (
+          <span className="chat-queued" title="Waiting for a connection">
+            {queued} waiting
+          </span>
+        )}
         <YouButton />
       </header>
 

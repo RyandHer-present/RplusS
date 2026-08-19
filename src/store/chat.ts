@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { Message, Reaction } from '../lib/types'
+import { enqueue, flush, pendingCount, type QueuedMessage } from '../lib/queue'
 import type { UserId } from './session'
 
 const PAGE_SIZE = 60
@@ -26,6 +27,9 @@ interface ChatState {
   toggleReaction: (messageId: string, emoji: string, me: UserId) => Promise<void>
   togglePin: (messageId: string) => Promise<void>
   markSeen: (ids: string[]) => Promise<void>
+  queued: number
+  flushQueue: () => Promise<void>
+  watchConnection: (me: UserId) => () => void
   subscribe: (me: UserId) => () => void
 }
 
@@ -44,6 +48,7 @@ export const useChat = create<ChatState>()((set, get) => ({
   replyTo: null,
   editing: null,
   hasMore: false,
+  queued: 0,
 
   load: async () => {
     if (!supabase) return
@@ -114,6 +119,23 @@ export const useChat = create<ChatState>()((set, get) => ({
       .single()
 
     if (error || !data) {
+      // Offline is not a failure, it is a delay: hold the message on disk and
+      // send it when the connection comes back.
+      if (!navigator.onLine) {
+        await enqueue({
+          id: tempId,
+          sender_id: me,
+          body: trimmed,
+          reply_to_id: optimistic.reply_to_id,
+          queued_at: optimistic.created_at,
+        })
+        set((s) => ({
+          messages: s.messages.map((m) => (m.id === tempId ? { ...m, pending: true } : m)),
+          queued: s.queued + 1,
+        }))
+        return
+      }
+
       set((s) => ({
         messages: s.messages.map((m) => (m.id === tempId ? { ...m, pending: false, failed: true } : m)),
       }))
@@ -212,6 +234,49 @@ export const useChat = create<ChatState>()((set, get) => ({
       messages: s.messages.map((m) => (ids.includes(m.id) ? { ...m, seen_at: m.seen_at ?? now } : m)),
     }))
     await supabase.from('messages').update({ seen_at: now }).in('id', ids).is('seen_at', null)
+  },
+
+
+  flushQueue: async () => {
+    if (!supabase) return
+
+    const sent = await flush(async (queuedMessage: QueuedMessage) => {
+      const { data, error } = await supabase!
+        .from('messages')
+        .insert({
+          sender_id: queuedMessage.sender_id,
+          body: queuedMessage.body,
+          reply_to_id: queuedMessage.reply_to_id,
+        })
+        .select('*, media(*)')
+        .single()
+
+      if (error || !data) return false
+
+      set((s) => ({
+        messages: upsert(
+          s.messages.filter((m) => m.id !== queuedMessage.id),
+          data as Message,
+        ),
+      }))
+      return true
+    })
+
+    if (sent) set({ queued: await pendingCount() })
+  },
+
+  watchConnection: (me) => {
+    void me
+    const onOnline = () => void get().flushQueue()
+
+    window.addEventListener('online', onOnline)
+    // Also try on start: the queue may have survived a closed tab.
+    void pendingCount().then((count) => {
+      set({ queued: count })
+      if (count) void get().flushQueue()
+    })
+
+    return () => window.removeEventListener('online', onOnline)
   },
 
   subscribe: (me) => {
