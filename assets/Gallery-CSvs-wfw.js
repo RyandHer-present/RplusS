@@ -1,1 +1,0 @@
-import{s as e}from"./index-CdSxghaV.js";import{t}from"./Stub-BK_L6Hu6.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Gallery`,heading:`Post a photo or a video`,body:`Everything shared lands here, newest first. Uploads get compressed on the way up so this stays quick on data.`,phase:`Phase 5`})}export{r as default};
