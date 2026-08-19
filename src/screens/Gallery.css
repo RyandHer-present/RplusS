@@ -1,0 +1,74 @@
+.gallery-add {
+  width: 100%;
+  padding: 0.95rem;
+  margin-bottom: 1rem;
+  border-radius: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  transition: transform 0.16s ease;
+  touch-action: manipulation;
+}
+
+.gallery-add:active { transform: scale(0.97); }
+
+.gallery-add:disabled {
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  cursor: default;
+}
+
+.gallery-error { margin: -0.5rem 0 1rem; font-size: 0.8rem; color: #ff6b83; text-align: center; }
+.gallery-empty { color: var(--muted); font-size: 0.87rem; text-align: center; }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 0.35rem;
+}
+
+.gallery-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  padding: 0;
+  background: var(--surface-2);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gallery-cell:active { transform: scale(0.96); }
+
+/* The grid is square; MediaImage keeps its own ratio, so it is stretched to
+   fill and cropped rather than letterboxed. */
+.gallery-cell .media-image { position: absolute; inset: 0; aspect-ratio: auto !important; height: 100%; }
+
+.gallery-play {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.gallery-play svg { width: 0.8rem; height: 0.8rem; }
+
+.gallery-who {
+  position: absolute;
+  left: 0.35rem;
+  top: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}

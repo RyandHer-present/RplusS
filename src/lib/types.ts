@@ -41,6 +41,17 @@ export interface Fit {
   media?: Media | null
 }
 
+export interface VoiceNote {
+  id: string
+  author_id: UserId
+  media_id: string
+  title: string | null
+  listened_at: string | null
+  peaks: number[] | null
+  created_at: string
+  media?: Media | null
+}
+
 export interface Reaction {
   message_id: string
   user_id: UserId

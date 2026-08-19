@@ -1,0 +1,65 @@
+.vp {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  border: 1px solid var(--border);
+}
+
+/* An unheard note gets an accent edge so it stands out in the list. */
+.vp.is-unheard { border-color: color-mix(in oklab, var(--a2) 45%, transparent); }
+
+.vp-play {
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vp-play:active { transform: scale(0.9); }
+.vp-play svg { width: 1.1rem; height: 1.1rem; }
+
+.vp-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+
+.vp-bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 2.1rem;
+  cursor: pointer;
+  touch-action: none; /* the drag is a scrub, not a scroll */
+}
+
+.vp-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--text) 22%, transparent);
+  transition: background-color 0.12s linear;
+}
+
+.vp-bar.is-played { background: var(--a2); }
+
+.vp-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.vp-speed {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}

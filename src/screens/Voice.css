@@ -1,0 +1,95 @@
+.rec {
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.rec.is-live {
+  border-color: color-mix(in oklab, #ff4d6a 55%, transparent);
+  background: radial-gradient(80% 120% at 50% 0%, rgba(255, 77, 106, 0.14), transparent 70%),
+    color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+.rec-start {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.9rem;
+  border-radius: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  transition: transform 0.16s ease;
+  touch-action: manipulation;
+}
+
+.rec-start:active { transform: scale(0.97); }
+.rec-start:disabled { color: var(--muted); background: var(--surface-2); }
+.rec-start svg { width: 1.15rem; height: 1.15rem; }
+
+.rec-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 3.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.rec-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--a3), var(--a1));
+  /* Short transition smooths the jitter between audio callbacks without
+     making the meter feel laggy. */
+  transition: height 0.09s linear;
+}
+
+.rec-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rec-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.rec-discard,
+.rec-stop {
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rec-discard { color: var(--muted); background: var(--surface-2); }
+
+.rec-stop {
+  color: #fff;
+  background: #ff4d6a;
+}
+
+.rec-error { margin: -0.6rem 0 1rem; font-size: 0.8rem; color: #ff6b83; text-align: center; }
+.voice-empty { color: var(--muted); font-size: 0.87rem; text-align: center; }
+
+.voice-list { display: flex; flex-direction: column; gap: 0.7rem; }
+
+.voice-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+  padding: 0 0.2rem;
+}
+
+.voice-who { font-size: 0.8rem; font-weight: 600; }
+.voice-when { font-size: 0.7rem; color: var(--muted); }

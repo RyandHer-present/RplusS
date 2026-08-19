@@ -180,3 +180,177 @@ export async function resolveMediaUrls(keys: string[]): Promise<Record<string, s
 
   return resolved
 }
+
+/* ------------------------------------------------------------------ video -- */
+
+interface VideoMeta {
+  poster: Blob
+  thumb: Blob
+  blur: string
+  width: number
+  height: number
+  durationMs: number
+}
+
+/**
+ * Pulls a poster frame out of a video file.
+ *
+ * iOS Safari will not paint a video to a canvas until playback has actually
+ * started, so this nudges it into playing muted and inline before seeking.
+ */
+async function grabPoster(file: File): Promise<VideoMeta> {
+  const video = document.createElement('video')
+  video.muted = true
+  video.playsInline = true
+  video.preload = 'metadata'
+  video.src = URL.createObjectURL(file)
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      video.onloadedmetadata = () => resolve()
+      video.onerror = () => reject(new Error('Could not read that video'))
+    })
+
+    // Silent, inline playback is permitted without a gesture; without it the
+    // canvas draw below comes out as an empty black frame on iOS.
+    try {
+      await video.play()
+    } catch {
+      // Some browsers refuse; seeking alone is often enough there.
+    }
+
+    const target = Math.min(video.duration * 0.1 || 0, 1)
+    await new Promise<void>((resolve) => {
+      video.onseeked = () => resolve()
+      video.currentTime = target
+      // If seeking never fires, carry on with whatever frame is showing.
+      window.setTimeout(resolve, 1200)
+    })
+    video.pause()
+
+    const sourceWidth = video.videoWidth || 720
+    const sourceHeight = video.videoHeight || 1280
+
+    const scale = Math.min(1, MAX_EDGE / Math.max(sourceWidth, sourceHeight))
+    const width = Math.round(sourceWidth * scale)
+    const height = Math.round(sourceHeight * scale)
+
+    const poster = await toBlob(draw(video, width, height), 0.8)
+
+    const thumbScale = Math.min(1, THUMB_EDGE / Math.max(width, height))
+    const thumb = await toBlob(
+      draw(video, Math.round(width * thumbScale), Math.round(height * thumbScale)),
+      0.7,
+    )
+
+    const blurScale = Math.min(1, BLUR_EDGE / Math.max(width, height))
+    const blur = draw(
+      video,
+      Math.max(1, Math.round(width * blurScale)),
+      Math.max(1, Math.round(height * blurScale)),
+    ).toDataURL(encodeType, 0.5)
+
+    return {
+      poster,
+      thumb,
+      blur,
+      width: sourceWidth,
+      height: sourceHeight,
+      durationMs: Math.round((video.duration || 0) * 1000),
+    }
+  } finally {
+    URL.revokeObjectURL(video.src)
+    video.src = ''
+  }
+}
+
+/**
+ * Uploads a video plus a generated poster frame.
+ *
+ * The video itself is uploaded as recorded. Re-encoding to 720p in the browser
+ * needs WebCodecs plus an MP4 muxer and behaves inconsistently across the two
+ * phones this has to work on, so it is deliberately left out for now rather
+ * than shipped half-working. The size ceiling below is what protects storage
+ * in the meantime.
+ */
+export async function uploadVideo(file: File, me: UserId): Promise<string> {
+  if (!supabase) throw new Error('Not connected')
+
+  const meta = await grabPoster(file)
+  const videoExt = (file.name.split('.').pop() ?? 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4'
+  const imageExt = extFor(encodeType)
+
+  const slot = await invoke<{ uploadUrl: string; key: string; maxBytes: number }>({
+    kind: 'video',
+    ext: videoExt,
+    contentType: file.type || 'video/mp4',
+  })
+
+  if (file.size > slot.maxBytes) {
+    const mb = Math.round(slot.maxBytes / (1024 * 1024))
+    throw new Error(`That video is over ${mb}MB. Trim it and try again.`)
+  }
+
+  const thumbSlot = await invoke<{ uploadUrl: string; key: string }>({
+    kind: 'image',
+    ext: imageExt,
+    contentType: encodeType,
+  })
+
+  await Promise.all([
+    put(slot.uploadUrl, file, file.type || 'video/mp4'),
+    put(thumbSlot.uploadUrl, meta.thumb, encodeType),
+  ])
+
+  const { data, error } = await supabase
+    .from('media')
+    .insert({
+      owner_id: me,
+      kind: 'video',
+      b2_key: slot.key,
+      thumb_key: thumbSlot.key,
+      blur: meta.blur,
+      width: meta.width,
+      height: meta.height,
+      duration_ms: meta.durationMs,
+      bytes: file.size,
+    })
+    .select()
+    .single()
+
+  if (error || !data) throw error ?? new Error('Could not save video')
+  return (data as Media).id
+}
+
+/** Uploads an already-encoded audio blob (see lib/recorder.ts). */
+export async function uploadAudio(
+  blob: Blob,
+  me: UserId,
+  durationMs: number,
+): Promise<string> {
+  if (!supabase) throw new Error('Not connected')
+
+  const slot = await invoke<{ uploadUrl: string; key: string; maxBytes: number }>({
+    kind: 'audio',
+    ext: 'mp3',
+    contentType: 'audio/mpeg',
+  })
+  if (blob.size > slot.maxBytes) throw new Error('That recording is too long')
+
+  await put(slot.uploadUrl, blob, 'audio/mpeg')
+
+  const { data, error } = await supabase
+    .from('media')
+    .insert({
+      owner_id: me,
+      kind: 'audio',
+      b2_key: slot.key,
+      duration_ms: durationMs,
+      bytes: blob.size,
+    })
+    .select()
+    .single()
+
+  if (error || !data) throw error ?? new Error('Could not save recording')
+  return (data as Media).id
+}
