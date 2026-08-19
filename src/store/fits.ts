@@ -1,13 +1,17 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { computeStreak, localDay } from '../lib/streak'
+import { uploadImage } from '../lib/media'
 import type { Fit } from '../lib/types'
 import type { UserId } from './session'
 
 interface FitsState {
   fits: Fit[]
   status: 'idle' | 'loading' | 'ready' | 'error'
+  uploading: boolean
+  uploadError: string | null
   load: () => Promise<void>
+  post: (file: File, me: UserId, caption?: string) => Promise<void>
   remove: (id: string) => Promise<void>
   subscribe: () => () => void
 }
@@ -15,6 +19,8 @@ interface FitsState {
 export const useFits = create<FitsState>()((set, get) => ({
   fits: [],
   status: 'idle',
+  uploading: false,
+  uploadError: null,
 
   load: async () => {
     if (!supabase) return
@@ -31,6 +37,27 @@ export const useFits = create<FitsState>()((set, get) => ({
       return
     }
     set({ fits: (data ?? []) as Fit[], status: 'ready' })
+  },
+
+  post: async (file, me, caption) => {
+    if (!supabase) return
+    set({ uploading: true, uploadError: null })
+
+    try {
+      const mediaId = await uploadImage(file, me)
+      const { error } = await supabase
+        .from('fits')
+        // The day comes from this device, so a late-night post counts for
+        // tonight rather than tomorrow on a UTC server.
+        .insert({ author_id: me, media_id: mediaId, caption: caption ?? null, day: localDay() })
+
+      if (error) throw error
+      await get().load()
+    } catch (err) {
+      set({ uploadError: err instanceof Error ? err.message : 'Upload failed' })
+    } finally {
+      set({ uploading: false })
+    }
   },
 
   remove: async (id) => {

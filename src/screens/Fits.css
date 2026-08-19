@@ -106,3 +106,13 @@
 }
 
 .fit-card figcaption { font-size: 0.72rem; color: var(--muted); }
+
+.fits-error {
+  margin: -0.9rem 0 1.2rem;
+  font-size: 0.8rem;
+  color: #ff6b83;
+  text-align: center;
+}
+
+/* The card owns the rounding; MediaImage inherits it. */
+.fit-image { overflow: hidden; display: grid; }

@@ -1,6 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { useFits, postedToday, streakFor } from '../store/fits'
+import { MediaImage } from '../components/MediaImage'
+import { haptic } from '../lib/haptics'
 import { USERS, useSession } from '../store/session'
 import { storageReady } from '../lib/storage'
 import type { Fit } from '../lib/types'
@@ -37,6 +39,10 @@ export default function Fits() {
   const status = useFits((s) => s.status)
   const load = useFits((s) => s.load)
   const subscribe = useFits((s) => s.subscribe)
+  const post = useFits((s) => s.post)
+  const uploading = useFits((s) => s.uploading)
+  const uploadError = useFits((s) => s.uploadError)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     void load()
@@ -73,9 +79,37 @@ export default function Fits() {
         </p>
       )}
 
-      <button type="button" className="fits-post" disabled={!storageReady}>
-        {storageReady ? 'Post today’s fit' : 'Photo storage not connected yet'}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          // Reset first, so picking the same photo twice still fires onChange.
+          e.target.value = ''
+          if (file) void post(file, me)
+        }}
+      />
+      <button
+        type="button"
+        className="fits-post"
+        disabled={!storageReady || uploading}
+        onClick={() => {
+          haptic('select')
+          fileRef.current?.click()
+        }}
+      >
+        {!storageReady
+          ? 'Photo storage not connected yet'
+          : uploading
+            ? 'Uploading…'
+            : done
+              ? 'Add another'
+              : 'Post today’s fit'}
       </button>
+
+      {uploadError && <p className="fits-error">{uploadError}</p>}
 
       {status === 'ready' && fits.length === 0 && (
         <p className="fits-empty">Nothing posted yet.</p>
@@ -87,7 +121,11 @@ export default function Fits() {
           <div className="fit-grid">
             {dayFits.map((fit) => (
               <figure key={fit.id} className="fit-card">
-                <div className="fit-image" data-owner={fit.author_id} />
+                <div className="fit-image">
+                  {fit.media ? (
+                    <MediaImage media={fit.media} alt={fit.caption ?? 'Fit'} />
+                  ) : null}
+                </div>
                 <figcaption>{fit.author_id === me ? 'You' : USERS[fit.author_id].name}</figcaption>
               </figure>
             ))}

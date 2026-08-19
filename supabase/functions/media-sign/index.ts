@@ -84,10 +84,12 @@ Deno.serve(async (req) => {
 
     for (const key of keys) {
       if (typeof key !== 'string' || key.includes('..')) continue
-      const signed = await aws.sign(
-        new Request(`${endpoint}/${bucket}/${encodeURI(key)}`, { method: 'GET' }),
-        { aws: { signQuery: true }, headers: { 'X-Amz-Expires': String(DOWNLOAD_TTL) } },
-      )
+      const url = new URL(`${endpoint}/${bucket}/${encodeURI(key)}`)
+      // Expiry belongs in the query string for a presigned URL. Passing it as
+      // a header puts it in SignedHeaders, and B2 then rejects the request for
+      // a signed header that was never sent.
+      url.searchParams.set('X-Amz-Expires', String(DOWNLOAD_TTL))
+      const signed = await aws.sign(new Request(url, { method: 'GET' }), { aws: { signQuery: true } })
       urls[key] = signed.url
     }
 
@@ -104,13 +106,15 @@ Deno.serve(async (req) => {
   const ext = (body.ext ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin'
   const key = `${kind}/${me.id}/${crypto.randomUUID()}.${ext}`
 
-  const signed = await aws.sign(
-    new Request(`${endpoint}/${bucket}/${encodeURI(key)}`, {
-      method: 'PUT',
-      headers: body.contentType ? { 'Content-Type': body.contentType } : undefined,
-    }),
-    { aws: { signQuery: true }, headers: { 'X-Amz-Expires': String(UPLOAD_TTL) } },
-  )
+  const uploadTarget = new URL(`${endpoint}/${bucket}/${encodeURI(key)}`)
+  uploadTarget.searchParams.set('X-Amz-Expires', String(UPLOAD_TTL))
+
+  // Content-Type is deliberately left out of the signature. The browser still
+  // sends it and B2 still records it, but an unsigned header cannot break the
+  // upload if it differs by so much as a charset.
+  const signed = await aws.sign(new Request(uploadTarget, { method: 'PUT' }), {
+    aws: { signQuery: true },
+  })
 
   return new Response(
     JSON.stringify({ uploadUrl: signed.url, key, maxBytes: MAX_BYTES[kind] }),
