@@ -72,3 +72,46 @@ VITE_SUPABASE_ANON_KEY=<anon key>
 
 Free projects pause after 7 days with no activity. Normal use prevents it; if you
 both go quiet for a week, the dashboard has a one-click restore.
+
+---
+
+# Backblaze B2 setup
+
+## Secrets
+
+Set in Dashboard → Edge Functions → Secrets:
+
+- `B2_BUCKET` — bucket name
+- `B2_ENDPOINT` — the S3 endpoint, e.g. `https://s3.ca-east-006.backblazeb2.com`
+- `B2_KEY_ID`, `B2_APP_KEY` — an application key scoped to that bucket
+
+**Do not guess the endpoint region.** Read it back from Backblaze:
+
+```
+curl -u "<keyId>:<appKey>" https://api.backblazeb2.com/b2api/v3/b2_authorize_account
+```
+
+The `s3ApiUrl` in the response is authoritative. A wrong region does not produce a
+helpful error — the signature simply fails to match.
+
+## CORS (required, and easy to miss)
+
+A new bucket permits **no** browser requests. Server-side tests pass happily while
+every upload from the site fails with a bare "failed to fetch", because the browser
+blocks it before Backblaze is ever contacted.
+
+Apply once, via `b2_update_bucket`:
+
+```json
+[{
+  "corsRuleName": "rplussBrowser",
+  "allowedOrigins": ["https://ryandher-present.github.io", "http://localhost:5173"],
+  "allowedOperations": ["s3_put", "s3_get", "s3_head"],
+  "allowedHeaders": ["*"],
+  "exposeHeaders": ["etag"],
+  "maxAgeSeconds": 3600
+}]
+```
+
+Adding a new origin later (a custom domain, a different dev port) means updating
+this list, or uploads from it will fail the same way.
