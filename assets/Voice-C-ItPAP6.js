@@ -1,1 +1,0 @@
-import{s as e}from"./index-Cdy6X6h5.js";import{t}from"./Stub-BKELE-4t.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Voice`,heading:`Record something`,body:`Voice notes stay here for good — scrub, speed them up, come back to them any time. Nothing disappears into a chat log.`,phase:`Phase 5`})}export{r as default};
