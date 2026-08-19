@@ -1,0 +1,1 @@
+import{o as e}from"./index-CX2Y3EMA.js";import{t}from"./Stub-uv5RTcAt.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Voice`,sub:`saved notes`,heading:`Voice notes, kept`,body:`Record for each other and it stays here permanently — waveform, scrubbing, and speed control, listenable any time rather than disappearing into a chat log.`,phase:`Phase 5`})}export{r as default};

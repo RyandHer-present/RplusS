@@ -1,1 +1,0 @@
-import{a as e}from"./index-CPQHa4NH.js";import{t}from"./Stub-D19I9J16.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Chat`,sub:`R + S`,heading:`Messages land here`,body:`Realtime chat with replies, reactions, typing dots, and sent/delivered/seen receipts. Needs the database connected before any of it can move.`,phase:`Phase 4`})}export{r as default};

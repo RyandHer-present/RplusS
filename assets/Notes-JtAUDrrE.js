@@ -1,1 +1,0 @@
-import{a as e}from"./index-CPQHa4NH.js";import{t}from"./Stub-D19I9J16.js";var n=e();function r(){return(0,n.jsx)(t,{title:`Notes`,sub:`vent / yap`,heading:`The long-form space`,body:`Longer entries you both can read, whenever. Separate from chat on purpose — no pressure to reply, nothing scrolling away.`,phase:`Phase 6`})}export{r as default};
