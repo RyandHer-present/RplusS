@@ -48,3 +48,9 @@
 }
 
 .screen-back svg { width: 0.9rem; height: 0.9rem; }
+
+/* Mood shows as a coloured ring around the avatar, not a badge — it should
+   read at a glance without adding another element to the header. */
+.you-button.has-mood {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--mood), 0 0 14px color-mix(in oklab, var(--mood) 55%, transparent);
+}

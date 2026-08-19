@@ -4,6 +4,7 @@ import { Shell } from './components/Shell'
 import Lock from './screens/Lock'
 import { useSession } from './store/session'
 import { supabase } from './lib/supabase'
+import { usePeople } from './store/people'
 
 // Route-level code splitting: the lock screen is all most sessions load first,
 // so the section bundles stay off the critical path.
@@ -17,6 +18,8 @@ const You = lazy(() => import('./screens/You'))
 
 export default function App() {
   const role = useSession((s) => s.role)
+  const loadPeople = usePeople((s) => s.load)
+  const subscribePeople = usePeople((s) => s.subscribe)
   const signOut = useSession((s) => s.signOut)
 
   // The remembered user and the Supabase session are stored separately, so they
@@ -32,6 +35,12 @@ export default function App() {
       cancelled = true
     }
   }, [role, signOut])
+
+  useEffect(() => {
+    if (!role) return
+    void loadPeople()
+    return subscribePeople()
+  }, [role, loadPeople, subscribePeople])
 
   if (!role) return <Lock />
 

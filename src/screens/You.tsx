@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { haptic, hapticsSupported } from '../lib/haptics'
 import { isMuted, setMuted, sfx } from '../lib/sound'
 import { signOutRemote } from '../lib/auth'
+import { MOODS, usePeople } from '../store/people'
 import './You.css'
 
 export default function You() {
@@ -18,6 +19,9 @@ export default function You() {
   const me = user ? USERS[user] : null
   const navigate = useNavigate()
   const [muted, setMutedState] = useState(isMuted())
+  const people = usePeople((s) => s.people)
+  const setMood = usePeople((s) => s.setMood)
+  const myMood = user ? people[user]?.mood : null
 
   return (
     <div className="screen-scroll">
@@ -44,6 +48,31 @@ export default function You() {
               <path d="M9 5l7 7-7 7" />
             </svg>
           </button>
+        </section>
+      )}
+
+      {user && (
+        <section className="panel">
+          <h2 className="panel-title">Mood</h2>
+          <p className="panel-note">Tints your ring wherever it shows. Tap again to clear.</p>
+          <div className="moods">
+            {MOODS.map((mood) => (
+              <button
+                key={mood.label}
+                type="button"
+                className={`mood ${myMood === mood.label ? 'is-active' : ''}`}
+                style={{ '--mood': mood.color } as React.CSSProperties}
+                onClick={() => {
+                  haptic('select')
+                  const clearing = myMood === mood.label
+                  void setMood(user, clearing ? null : mood.label, clearing ? null : mood.color)
+                }}
+              >
+                <span className="mood-emoji">{mood.emoji}</span>
+                <span className="mood-label">{mood.label}</span>
+              </button>
+            ))}
+          </div>
         </section>
       )}
 

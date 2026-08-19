@@ -5,6 +5,7 @@ import { Composer } from '../components/Composer'
 import { YouButton } from '../components/ScreenHeader'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
+import { usePeople } from '../store/people'
 import { USERS, useSession, type UserId } from '../store/session'
 import { haptic } from '../lib/haptics'
 import type { Message } from '../lib/types'
@@ -50,6 +51,7 @@ export default function Chat() {
   const otherTyping = usePresence((s) => s.otherTyping)
   const otherLastSeen = usePresence((s) => s.otherLastSeen)
 
+  const theirMood = usePeople((s) => s.people[other]?.mood_color)
   const [menuFor, setMenuFor] = useState<Message | null>(null)
   const listRef = useRef<VirtuosoHandle>(null)
 
@@ -104,7 +106,12 @@ export default function Chat() {
   return (
     <div className="chat">
       <header className="chat-head">
-        <div className={`avatar ${otherOnline ? 'is-online' : ''}`}>{USERS[other].initial}</div>
+        <div
+          className={`avatar ${otherOnline ? 'is-online' : ''} ${theirMood ? 'has-mood' : ''}`}
+          style={theirMood ? ({ '--mood': theirMood } as React.CSSProperties) : undefined}
+        >
+          {USERS[other].initial}
+        </div>
         <div className="chat-who">
           <span className="chat-name">{USERS[other].name}</span>
           <span className={`chat-status ${otherTyping ? 'is-typing' : ''}`}>{statusLine}</span>

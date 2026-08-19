@@ -232,3 +232,7 @@
   border-top: 1px solid color-mix(in oklab, var(--text) 8%, transparent);
   background: color-mix(in oklab, var(--bg) 88%, transparent);
 }
+
+.avatar.has-mood {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--mood), 0 0 16px color-mix(in oklab, var(--mood) 50%, transparent);
+}

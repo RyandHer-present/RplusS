@@ -7,7 +7,19 @@ export default defineConfig({
   plugins: [react()],
   build: {
     target: 'es2022',
-    // Chunk splitting is deliberately left to Rolldown's defaults for now;
-    // revisit in the Phase 8 perf pass with real bundle numbers.
+    rolldownOptions: {
+      output: {
+        // Split the big, rarely-changing libraries out of the app bundle. They
+        // then stay cached across deploys instead of being re-downloaded every
+        // time a screen changes.
+        advancedChunks: {
+          groups: [
+            { name: 'react', test: /node_modules[\/](react|react-dom|scheduler|react-router)/ },
+            { name: 'supabase', test: /node_modules[\/]@supabase/ },
+            { name: 'motion', test: /node_modules[\/](gsap|ogl)/ },
+          ],
+        },
+      },
+    },
   },
 })

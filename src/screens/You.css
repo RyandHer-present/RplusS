@@ -128,3 +128,31 @@
 }
 
 .toggle.is-on .toggle-knob { transform: translateX(1.2rem); }
+
+.moods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr));
+  gap: 0.5rem;
+}
+
+.mood {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+  padding: 0.6rem 0.35rem;
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--surface-2) 75%, transparent);
+  border: 1.5px solid transparent;
+  transition: transform 0.16s ease, border-color 0.22s ease, background-color 0.22s ease;
+}
+
+.mood:active { transform: scale(0.95); }
+
+.mood.is-active {
+  border-color: var(--mood);
+  background: color-mix(in oklab, var(--mood) 16%, transparent);
+}
+
+.mood-emoji { font-size: 1.35rem; line-height: 1; }
+.mood-label { font-size: 0.66rem; color: var(--muted); }
+.mood.is-active .mood-label { color: var(--text); }

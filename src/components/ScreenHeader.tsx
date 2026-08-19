@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { USERS, useSession } from '../store/session'
+import { usePeople } from '../store/people'
 import { haptic } from '../lib/haptics'
 import './ScreenHeader.css'
 
@@ -15,11 +16,13 @@ interface Props {
 export function YouButton() {
   const navigate = useNavigate()
   const me = useSession((s) => s.user)
+  const live = usePeople((s) => (me ? s.people[me]?.mood_color : null))
 
   return (
     <button
       type="button"
-      className="you-button"
+      className={`you-button ${live ? 'has-mood' : ''}`}
+      style={live ? ({ '--mood': live } as React.CSSProperties) : undefined}
       onClick={() => {
         haptic('select')
         navigate('/you')
