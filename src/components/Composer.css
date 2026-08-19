@@ -1,0 +1,105 @@
+.composer {
+  flex: none;
+  border-top: 1px solid color-mix(in oklab, var(--text) 8%, transparent);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ---- reply bar ---- */
+
+.reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem 0.35rem;
+  animation: reply-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes reply-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.reply-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding-left: 0.55rem;
+  border-left: 2.5px solid var(--a2);
+}
+
+.reply-to { font-size: 0.72rem; font-weight: 600; color: var(--a2); }
+
+.reply-text {
+  font-size: 0.76rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reply-close {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+/* ---- input row ---- */
+
+.composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0.6rem;
+}
+
+.composer-input {
+  flex: 1;
+  min-width: 0;
+  max-height: 132px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  line-height: 1.35;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.composer-input:focus { border-color: color-mix(in oklab, var(--a2) 55%, transparent); }
+.composer-input::placeholder { color: var(--muted); }
+
+.send {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-2);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.send svg { width: 1.2rem; height: 1.2rem; }
+
+.send.is-ready {
+  color: #fff;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  transform: scale(1.06);
+}
+
+.send:active { transform: scale(0.9); }
+.send:disabled { cursor: default; }

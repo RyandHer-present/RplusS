@@ -4,9 +4,8 @@ export default function Gallery() {
   return (
     <Stub
       title="Gallery"
-      sub="photos + video"
-      heading="Everything you both post"
-      body="A chronological grid of photos and videos from both of you. Images get squeezed to a tenth of their size on the way up, so this stays fast on mobile data."
+      heading="Post a photo or a video"
+      body="Everything shared lands here, newest first. Uploads get compressed on the way up so this stays quick on data."
       phase="Phase 5"
     />
   )

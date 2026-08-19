@@ -22,7 +22,7 @@ export default function You() {
 
       <section className="panel">
         <h2 className="panel-title">Theme</h2>
-        <p className="panel-note">Your pick only — Sarah sets hers separately.</p>
+        <p className="panel-note">Only changes how it looks for you.</p>
 
         <div className="themes">
           {THEME_LIST.map((theme) => (

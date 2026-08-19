@@ -4,9 +4,8 @@ export default function Notes() {
   return (
     <Stub
       title="Notes"
-      sub="vent / yap"
-      heading="The long-form space"
-      body="Longer entries you both can read, whenever. Separate from chat on purpose — no pressure to reply, nothing scrolling away."
+      heading="Say more than a message"
+      body="Write something long. No pressure to reply, nothing scrolling away."
       phase="Phase 6"
     />
   )

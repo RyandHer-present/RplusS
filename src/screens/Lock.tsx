@@ -113,7 +113,7 @@ export default function Lock() {
           <h1 className="lock-mark">
             R<span>+</span>S
           </h1>
-          <p className="lock-names">Ry &amp; Sarah</p>
+          <p className="lock-names">Enter your PIN</p>
         </header>
 
         <div className="lock-entry">
