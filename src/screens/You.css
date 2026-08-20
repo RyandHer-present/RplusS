@@ -129,17 +129,14 @@
 
 .toggle.is-on .toggle-knob { transform: translateX(1.2rem); }
 
-.moods {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr));
-  gap: 0.5rem;
-}
+.moods { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 
 .mood {
-  display: grid;
-  gap: 0.25rem;
-  justify-items: center;
-  padding: 0.6rem 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
   border-radius: 0.85rem;
   background: color-mix(in oklab, var(--surface-2) 75%, transparent);
   border: 1.5px solid transparent;
@@ -153,6 +150,12 @@
   background: color-mix(in oklab, var(--mood) 16%, transparent);
 }
 
-.mood-emoji { font-size: 1.35rem; line-height: 1; }
-.mood-label { font-size: 0.66rem; color: var(--muted); }
+.mood-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--mood);
+  box-shadow: 0 0 10px var(--mood);
+}
+.mood-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
 .mood.is-active .mood-label { color: var(--text); }

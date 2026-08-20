@@ -68,7 +68,7 @@ export default function You() {
                   void setMood(user, clearing ? null : mood.label, clearing ? null : mood.color)
                 }}
               >
-                <span className="mood-emoji">{mood.emoji}</span>
+                <span className="mood-dot" aria-hidden="true" />
                 <span className="mood-label">{mood.label}</span>
               </button>
             ))}
@@ -103,6 +103,17 @@ export default function You() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="panel">
+        <h2 className="panel-title">Visuals</h2>
+        <p className="panel-note">Turn individual effects on or off.</p>
+        <button type="button" className="panel-link" onClick={() => navigate('/visuals')}>
+          Open visual settings
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </section>
 
       <section className="panel">

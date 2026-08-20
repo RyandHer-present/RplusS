@@ -1,0 +1,291 @@
+/* ---------------------------------------------------------------------------
+   Visual layers, each gated by a `v-<id>` class on <html>.
+
+   Everything here animates transform or opacity only, and every effect is a
+   single composited layer, so switching them all on does not cost framerate.
+   --------------------------------------------------------------------------- */
+
+/* ---- full-screen atmosphere ---- */
+
+.atmo-grain,
+.atmo-vignette,
+.atmo-beams,
+.atmo-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  display: none;
+}
+
+.v-grain .atmo-grain,
+.v-vignette .atmo-vignette,
+.v-beams .atmo-beams,
+.v-particles .atmo-particles { display: block; }
+
+/* Fine noise, generated as inline SVG turbulence and tiled. Breaks up the flat
+   gradients that band badly on OLED phones. */
+.atmo-grain {
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 6s steps(4) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-2%, 1%, 0); }
+  50%  { transform: translate3d(1%, -2%, 0); }
+  75%  { transform: translate3d(-1%, -1%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+.atmo-vignette {
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Two soft diagonals, as if light were coming in from off-screen. */
+.atmo-beams { overflow: hidden; opacity: 0.5; }
+
+.atmo-beams::before,
+.atmo-beams::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -10%;
+  width: 40%;
+  height: 180%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--a2) 16%, transparent), transparent);
+  animation: beam-drift 18s ease-in-out infinite alternate;
+}
+
+.atmo-beams::after {
+  left: 45%;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--a3) 14%, transparent), transparent);
+  animation-duration: 24s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes beam-drift {
+  from { transform: rotate(18deg) translateX(-6%); }
+  to   { transform: rotate(18deg) translateX(10%); }
+}
+
+/* Specks that rise slowly and fade, each offset by its index. */
+.atmo-particles span {
+  position: absolute;
+  bottom: -10px;
+  left: calc(var(--i) * 7.4%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--a2) 70%, transparent);
+  opacity: 0;
+  animation: speck-rise 22s linear infinite;
+  animation-delay: calc(var(--i) * -1.6s);
+}
+
+.atmo-particles span:nth-child(even) {
+  width: 2px;
+  height: 2px;
+  background: color-mix(in oklab, var(--a3) 70%, transparent);
+  animation-duration: 30s;
+}
+
+@keyframes speck-rise {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.5; }
+  100% { transform: translate3d(18px, -100vh, 0); opacity: 0; }
+}
+
+/* ---- background layers ---- */
+
+.shell-ambient { display: none; }
+.v-ambient .shell-ambient { display: block; }
+
+.lock-bg { display: none; }
+.v-shader .lock-bg { display: block; }
+
+/* ---- surfaces ---- */
+
+.v-blur .stub,
+.v-blur .panel,
+.v-blur .note-card,
+.v-blur .capsule,
+.v-blur .search-hit,
+.v-blur .tabbar {
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+html:not(.v-shadows) .stub,
+html:not(.v-shadows) .panel,
+html:not(.v-shadows) .note-card,
+html:not(.v-shadows) .capsule,
+html:not(.v-shadows) .search-hit,
+html:not(.v-shadows) .stat-card,
+html:not(.v-shadows) .stat-block { box-shadow: none; }
+
+/* A faint diagonal gloss, so large panels are not uniformly flat. */
+.v-sheen .panel,
+.v-sheen .note-card,
+.v-sheen .stat-card,
+.v-sheen .today-card,
+.v-sheen .capsule { position: relative; overflow: hidden; }
+
+.v-sheen .panel::after,
+.v-sheen .note-card::after,
+.v-sheen .stat-card::after,
+.v-sheen .today-card::after,
+.v-sheen .capsule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 45%);
+  pointer-events: none;
+}
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Light travelling around a card edge. Off by default: lovely on one card,
+   noisy across twenty. */
+.v-sweep .note-card,
+.v-sweep .panel,
+.v-sweep .today-card { position: relative; }
+
+.v-sweep .note-card::before,
+.v-sweep .panel::before,
+.v-sweep .today-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--angle), transparent 60%, var(--a2), transparent 85%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: sweep 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sweep {
+  to { --angle: 360deg; }
+}
+
+.v-rounded { --radius: 1.5rem; }
+.v-rounded .note-card,
+.v-rounded .panel,
+.v-rounded .bubble { border-radius: 1.5rem; }
+
+/* ---- colour ---- */
+
+html:not(.v-gradientText) .screen-title {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--text);
+}
+
+.v-vivid { filter: saturate(1.22); }
+
+.v-contrast { --muted: color-mix(in oklab, var(--text) 72%, transparent); }
+
+html:not(.v-tint) .panel,
+html:not(.v-tint) .note-card { background: var(--surface); }
+
+.v-glow .lock-mark,
+.v-glow .screen-title { filter: drop-shadow(0 0 22px color-mix(in oklab, var(--a1) 40%, transparent)); }
+
+.v-glow .lock-dot.is-filled,
+.v-glow .avatar.is-online::after,
+.v-glow .tab-badge { filter: drop-shadow(0 0 6px currentColor); }
+
+/* ---- motion ---- */
+
+html:not(.v-stagger) .stagger > * { animation: none; }
+
+html:not(.v-tabGlow) .tab-glow { display: none; }
+
+.v-pop .bubble-wrap { animation: bubble-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+@keyframes bubble-pop {
+  from { transform: scale(0.9) translateY(6px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+html:not(.v-springs) .key,
+html:not(.v-springs) .tab,
+html:not(.v-springs) .note-card,
+html:not(.v-springs) .gallery-cell { transition-timing-function: ease; }
+
+/* Live things breathe, so "online" reads as alive rather than painted on. */
+.v-breathe .avatar.is-online::after,
+.v-breathe .tab-badge { animation: breathe 2.4s ease-in-out infinite; }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.22); opacity: 0.75; }
+}
+
+.v-shimmer .media-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.09) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Once the real image is in, the sweep has nothing left to say. */
+.v-shimmer .media-image:has(.media-real.is-loaded)::after { display: none; }
+
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* ---- chat ---- */
+
+/* Drawn as a border triangle so it inherits the bubble colour. */
+.v-tails .row.is-theirs .bubble::before,
+.v-tails .row.is-mine .bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border: 7px solid transparent;
+}
+
+.v-tails .row.is-theirs .bubble::before {
+  left: -5px;
+  border-right-color: var(--surface-2);
+  border-bottom: 0;
+}
+
+.v-tails .row.is-mine .bubble::before {
+  right: -5px;
+  border-left-color: var(--a3);
+  border-bottom: 0;
+}
+
+.v-compact .row { padding-top: 0.02rem; padding-bottom: 0.02rem; }
+.v-compact .bubble { padding: 0.42rem 0.7rem; }
+.v-compact .screen-scroll { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+.v-alwaysTime .meta { display: flex !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .atmo-grain,
+  .atmo-beams::before,
+  .atmo-beams::after,
+  .atmo-particles span,
+  .shell-ambient { animation: none; }
+}

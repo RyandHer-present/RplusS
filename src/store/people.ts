@@ -12,16 +12,10 @@ export interface Person {
   created_at: string
 }
 
-/** Preset moods. Free text would be a status line, which was cut. */
-export const MOODS: { emoji: string; label: string; color: string }[] = [
-  { emoji: '🔥', label: 'locked in', color: '#ff7a45' },
-  { emoji: '😌', label: 'good', color: '#35e08a' },
-  { emoji: '😐', label: 'fine', color: '#8e8ea6' },
-  { emoji: '🫠', label: 'cooked', color: '#ffb347' },
-  { emoji: '😴', label: 'tired', color: '#7b5cff' },
-  { emoji: '🌧️', label: 'rough', color: '#4b8bff' },
-  { emoji: '😤', label: 'annoyed', color: '#ff4d6a' },
-  { emoji: '🤪', label: 'unwell', color: '#ff5cf0' },
+/** Two states, no more. A long list of faces reads as clutter, not feeling. */
+export const MOODS: { label: string; color: string }[] = [
+  { label: 'good', color: '#35e08a' },
+  { label: 'bad', color: '#ff4d6a' },
 ]
 
 interface PeopleState {

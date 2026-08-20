@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { TABS, TabBar } from './TabBar'
+import { Atmosphere } from './Atmosphere'
 import { useUnread } from '../store/unread'
 import { useSession } from '../store/session'
 import { haptic } from '../lib/haptics'
@@ -116,6 +117,7 @@ export function Shell() {
       {/* Slow-drifting colour behind every screen. Pure CSS gradients on one
           composited layer, so it costs nothing per frame. */}
       <div className="shell-ambient" aria-hidden="true" />
+      <Atmosphere />
       <div className="shell-pane" ref={paneRef}>
         <Outlet />
       </div>

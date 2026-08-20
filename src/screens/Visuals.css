@@ -1,0 +1,90 @@
+.vis-bulk {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.vis-bulk button {
+  padding: 0.6rem 0.4rem;
+  border-radius: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  transition: transform 0.16s ease;
+}
+
+.vis-bulk button:active { transform: scale(0.96); }
+
+.vis-group { margin-bottom: 1.35rem; }
+
+.vis-group-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.vis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+}
+
+.vis-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  background: var(--glass);
+  transition: background-color 0.22s ease;
+}
+
+.vis-row.is-on { background: color-mix(in oklab, var(--a1) 10%, var(--glass)); }
+
+.vis-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.vis-label { font-size: 0.9rem; font-weight: 600; }
+.vis-hint { font-size: 0.72rem; color: var(--muted); }
+
+.vis-switch {
+  position: relative;
+  flex: none;
+  width: 2.6rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--text) 14%, transparent);
+  transition: background-color 0.25s ease;
+}
+
+.vis-row.is-on .vis-switch { background: linear-gradient(135deg, var(--a1), var(--a3)); }
+
+.vis-knob {
+  position: absolute;
+  top: 0.185rem;
+  left: 0.185rem;
+  width: 1.18rem;
+  height: 1.18rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vis-row.is-on .vis-knob { transform: translateX(1.05rem); }
+
+.vis-foot {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
