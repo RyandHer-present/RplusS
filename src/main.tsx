@@ -5,6 +5,7 @@ import { ThemeProvider } from './theme/ThemeProvider'
 import App from './App'
 import './index.css'
 import './visuals.css'
+import './visuals-layers.css'
 
 // HashRouter rather than BrowserRouter: GitHub Pages has no server-side rewrite,
 // so deep links on a normal router would 404 on refresh.

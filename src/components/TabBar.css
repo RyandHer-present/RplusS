@@ -85,3 +85,27 @@
 }
 
 .tab-icon { position: relative; }
+
+/* Sliding highlight. Positioned in JS from the active tab's own box, so it
+   tracks font scaling and rotation without a second set of numbers to keep in
+   step. Sits under the icons at z-index 0 within the bar. */
+.tab-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    140deg,
+    color-mix(in oklab, var(--sec, var(--a1)) 30%, transparent),
+    color-mix(in oklab, var(--sec2, var(--a2)) 22%, transparent)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 18px -10px color-mix(in oklab, var(--sec, var(--a1)) 85%, transparent);
+}
+
+/* The links have to outrank the pill or the labels sit behind it. */
+.tab { z-index: 1; }

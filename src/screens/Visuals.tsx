@@ -83,8 +83,10 @@ export default function Visuals() {
       ))}
 
       <p className="vis-foot">
-        Every effect here is a single composited layer, so turning them all on does not
-        cost framerate. They are yours alone — Sarah&rsquo;s settings are separate.
+        Nearly all of these are one composited layer each, so they cost almost nothing
+        to run. <strong>Live background</strong> is the exception — it is a real shader,
+        and it is the first thing to turn off if anything ever feels sluggish. Every
+        setting here is yours alone; Sarah&rsquo;s are separate.
       </p>
     </div>
   )

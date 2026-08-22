@@ -1,5 +1,5 @@
-import type { ReactElement } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef, type ReactElement } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useUnread } from '../store/unread'
 import { haptic } from '../lib/haptics'
 import './TabBar.css'
@@ -74,14 +74,52 @@ export function TabBar() {
   // Subscribing to both keeps the dot reactive; isUnread alone is a getter.
   const latest = useUnread((s) => s.latest)
   const seen = useUnread((s) => s.seen)
+  const location = useLocation()
+  const navRef = useRef<HTMLElement>(null)
+  const pillRef = useRef<HTMLSpanElement>(null)
 
   const unread = (path: string) => {
     const arrived = latest[path]
     return Boolean(arrived && (!seen[path] || arrived > seen[path]))
   }
 
+  // The pill is measured off the live tab rather than computed from column
+  // maths, so it stays correct through font scaling, rotation, and safe-area
+  // changes without anyone having to keep two sets of numbers in step.
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const pill = pillRef.current
+    if (!nav || !pill) return
+
+    const place = () => {
+      const active = nav.querySelector<HTMLElement>('.tab.is-active')
+      if (!active) {
+        pill.style.opacity = '0'
+        return
+      }
+      pill.style.opacity = '1'
+      pill.style.width = `${active.offsetWidth}px`
+      pill.style.height = `${active.offsetHeight}px`
+      pill.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`
+    }
+
+    place()
+    const ro = new ResizeObserver(place)
+    ro.observe(nav)
+    return () => ro.disconnect()
+  }, [location.pathname])
+
+  // The very first placement should not slide in from the corner.
+  useEffect(() => {
+    const pill = pillRef.current
+    if (!pill) return
+    const id = requestAnimationFrame(() => pill.classList.add('is-ready'))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   return (
-    <nav className="tabbar" aria-label="Sections">
+    <nav className="tabbar" aria-label="Sections" ref={navRef}>
+      <span className="tab-pill" ref={pillRef} aria-hidden="true" />
       {TABS.map((tab) => (
         <NavLink
           key={tab.to}

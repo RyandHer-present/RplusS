@@ -1,0 +1,480 @@
+/* ---------------------------------------------------------------------------
+   Second visual pass. Loaded after visuals.css, same contract: every effect is
+   gated by a `v-<id>` class on <html>.
+
+   The expensive-looking parts (orbs, ribbons, horizon) are soft-edged
+   gradients rather than blurred elements. `filter: blur()` across a half-screen
+   box is where framerate actually goes on a phone, and a radial-gradient with
+   a long falloff is indistinguishable at this softness.
+   --------------------------------------------------------------------------- */
+
+/* ---- per-section palette ------------------------------------------------ */
+
+/* Registered so the colour can transition. Unregistered custom properties
+   snap; these need to cross-fade as you move between tabs. */
+@property --sec {
+  syntax: "<color>";
+  initial-value: #7b5cff;
+  inherits: true;
+}
+@property --sec2 {
+  syntax: "<color>";
+  initial-value: #21d4fd;
+  inherits: true;
+}
+
+:root {
+  --sec: var(--a1);
+  --sec2: var(--a2);
+}
+
+.shell { transition: --sec 0.7s ease, --sec2 0.7s ease; }
+
+.v-sectionHue .shell[data-section="chat"]    { --sec: var(--a1); --sec2: var(--a3); }
+.v-sectionHue .shell[data-section="notes"]   { --sec: var(--a2); --sec2: var(--a1); }
+.v-sectionHue .shell[data-section="gallery"] { --sec: var(--a3); --sec2: var(--a2); }
+.v-sectionHue .shell[data-section="fits"]    { --sec: color-mix(in oklab, var(--a3) 55%, var(--a2)); --sec2: var(--a1); }
+.v-sectionHue .shell[data-section="voice"]   { --sec: color-mix(in oklab, var(--a2) 65%, var(--a1)); --sec2: var(--a3); }
+
+/* ---- live shader behind the app ----------------------------------------- */
+
+.shell-shader {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  /* Fades out downward so the tab bar and composer never sit on moving colour. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 92%);
+}
+
+/* ---- background layers -------------------------------------------------- */
+
+.atmo-orbs,
+.atmo-ribbons,
+.atmo-stars,
+.atmo-horizon {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;
+}
+
+.v-orbs .atmo-orbs,
+.v-ribbons .atmo-ribbons,
+.v-stars .atmo-stars,
+.v-horizon .atmo-horizon { display: block; }
+
+/* Big soft lights on long, unequal orbits. Because the periods do not divide
+   into each other, the arrangement never visibly repeats. */
+.atmo-orbs span {
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: orb-drift 46s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -9s);
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--sec) 42%, transparent), transparent 62%);
+}
+
+.atmo-orbs span:nth-child(1) { top: -28%; left: -26%; --dx: 8%; --dy: 5%; --sc: 1.18; }
+
+.atmo-orbs span:nth-child(2) {
+  top: -12%;
+  left: 42%;
+  width: 48vmax;
+  height: 48vmax;
+  --dx: -10%;
+  --dy: 8%;
+  --sc: 1.25;
+  animation-duration: 61s;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--sec2) 40%, transparent), transparent 62%);
+}
+
+.atmo-orbs span:nth-child(3) {
+  top: 45%;
+  left: -34%;
+  width: 70vmax;
+  height: 70vmax;
+  --dx: 12%;
+  --dy: -7%;
+  --sc: 1.1;
+  animation-duration: 73s;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--a3) 34%, transparent), transparent 62%);
+}
+
+.atmo-orbs span:nth-child(4) {
+  top: 58%;
+  left: 38%;
+  width: 54vmax;
+  height: 54vmax;
+  opacity: 0.4;
+  --dx: -8%;
+  --dy: -10%;
+  --sc: 1.22;
+  animation-duration: 53s;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--a1) 38%, transparent), transparent 62%);
+}
+
+.atmo-orbs span:nth-child(5) {
+  top: 20%;
+  left: 8%;
+  width: 38vmax;
+  height: 38vmax;
+  opacity: 0.32;
+  --dx: 14%;
+  --dy: 12%;
+  --sc: 0.85;
+  animation-duration: 67s;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--a2) 36%, transparent), transparent 60%);
+}
+
+@keyframes orb-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(var(--dx, 6%), var(--dy, -5%), 0) scale(var(--sc, 1.15)); }
+}
+
+/* Wide bands sliding across each other. Screen blending is what turns two
+   overlapping bands into a brighter third colour instead of a muddy one. */
+.atmo-ribbons { opacity: 0.55; }
+
+.atmo-ribbons span {
+  position: absolute;
+  left: -60%;
+  width: 220%;
+  height: 26vh;
+  mix-blend-mode: screen;
+  will-change: transform;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--sec) 30%, transparent) 28%,
+    color-mix(in oklab, var(--sec2) 34%, transparent) 52%,
+    transparent 82%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 45%, transparent);
+  animation: ribbon-slide 34s ease-in-out infinite alternate;
+}
+
+.atmo-ribbons span:nth-child(1) { top: 4%; --rot: -9deg; --shift: 9%; }
+.atmo-ribbons span:nth-child(2) { top: 22%; --rot: 6deg; --shift: -12%; animation-duration: 47s; opacity: 0.75; }
+.atmo-ribbons span:nth-child(3) { top: 40%; --rot: -14deg; --shift: 7%; animation-duration: 59s; opacity: 0.5; }
+
+@keyframes ribbon-slide {
+  from { transform: rotate(var(--rot, 0deg)) translate3d(calc(var(--shift, 6%) * -1), 0, 0); }
+  to   { transform: rotate(var(--rot, 0deg)) translate3d(var(--shift, 6%), 2vh, 0); }
+}
+
+/* Fixed points that fade in and out on their own clocks. */
+.atmo-stars span {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5);
+  animation: twinkle var(--t) ease-in-out var(--d) infinite;
+}
+
+/* Every third one takes the section colour, so the field is not flatly white. */
+.atmo-stars span:nth-child(3n) {
+  background: color-mix(in oklab, var(--sec2) 80%, white);
+  box-shadow: 0 0 7px 1px color-mix(in oklab, var(--sec2) 60%, transparent);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.06; transform: scale(0.7); }
+  50%      { opacity: 0.85; transform: scale(1); }
+}
+
+/* Light pooling along the bottom edge, as if the screen were sitting on it. */
+.atmo-horizon {
+  background:
+    radial-gradient(120% 40% at 50% 108%, color-mix(in oklab, var(--sec) 34%, transparent), transparent 70%),
+    radial-gradient(80% 26% at 18% 104%, color-mix(in oklab, var(--sec2) 26%, transparent), transparent 72%);
+  animation: horizon-swell 16s ease-in-out infinite alternate;
+}
+
+@keyframes horizon-swell {
+  from { opacity: 0.55; transform: translate3d(0, 2%, 0); }
+  to   { opacity: 1; transform: translate3d(0, -1%, 0); }
+}
+
+/* Colour creeping in from all four edges, over the UI but under the grain. */
+.atmo-edge {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  pointer-events: none;
+  display: none;
+  box-shadow:
+    inset 0 0 100px -26px color-mix(in oklab, var(--sec) 55%, transparent),
+    inset 0 0 40px -14px color-mix(in oklab, var(--sec2) 45%, transparent);
+  animation: edge-pulse 11s ease-in-out infinite alternate;
+}
+
+.v-edgeGlow .atmo-edge { display: block; }
+
+@keyframes edge-pulse {
+  from { opacity: 0.5; }
+  to   { opacity: 1; }
+}
+
+/* ---- parallax ----------------------------------------------------------- */
+
+/* `--scroll` is written to .shell by the shell, saturating at 240px. The three
+   layers move at different rates, which is the whole trick. */
+.v-parallax .atmo-stars   { transform: translate3d(0, calc(var(--scroll, 0) * -20px), 0); }
+.v-parallax .atmo-orbs    { transform: translate3d(0, calc(var(--scroll, 0) * -44px), 0); }
+.v-parallax .atmo-ribbons { transform: translate3d(0, calc(var(--scroll, 0) * -78px), 0); }
+.v-parallax .shell-shader { opacity: calc(0.6 - var(--scroll, 0) * 0.3); }
+
+/* ---- pointer effects ----------------------------------------------------- */
+
+.fx-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  pointer-events: none;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background: radial-gradient(
+    180px 180px at var(--px, 50vw) var(--py, 50vh),
+    color-mix(in oklab, var(--sec2) 22%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+.v-spotlight .fx-spotlight { display: block; }
+.fx-spotlight.is-lit { opacity: 1; }
+
+.fx-rings {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fx-ring {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--sec2) 80%, transparent);
+  animation: ring-out 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ring-out {
+  from { transform: scale(0.4); opacity: 0.8; }
+  to   { transform: scale(7); opacity: 0; }
+}
+
+/* ---- surfaces ------------------------------------------------------------ */
+
+/* A one-pixel gradient rim, painted as two stacked backgrounds clipped to
+   padding-box and border-box. No pseudo-element, so it stacks with the sheen
+   and the travelling border rather than fighting them for ::before. */
+.v-gradientBorders .panel,
+.v-gradientBorders .capsule,
+.v-gradientBorders .search-hit,
+.v-gradientBorders .fit-card,
+.v-gradientBorders .stub {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--surface) 84%, transparent), color-mix(in oklab, var(--surface) 84%, transparent)),
+    linear-gradient(140deg, color-mix(in oklab, var(--sec) 55%, transparent), transparent 42%, color-mix(in oklab, var(--sec2) 45%, transparent));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.v-gradientBorders .note-card {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(135deg, color-mix(in oklab, var(--note) 14%, transparent), transparent 55%),
+    linear-gradient(color-mix(in oklab, var(--surface) 84%, transparent), color-mix(in oklab, var(--surface) 84%, transparent)),
+    linear-gradient(140deg, color-mix(in oklab, var(--note) 70%, transparent), transparent 45%, color-mix(in oklab, var(--sec2) 40%, transparent));
+  background-origin: border-box;
+  background-clip: padding-box, padding-box, border-box;
+}
+
+/* Just the top hairline — a full rim would give the bar edges it never had. */
+.v-gradientBorders .composer {
+  border-top-color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--sec) 70%, transparent),
+    color-mix(in oklab, var(--sec2) 60%, transparent),
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 0;
+}
+
+/* Lit along the top edge, the way a physical panel catches a light above it. */
+.v-innerGlow .panel,
+.v-innerGlow .note-card,
+.v-innerGlow .capsule,
+.v-innerGlow .search-hit,
+.v-innerGlow .fit-card,
+.v-innerGlow .stub {
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 22px 36px -30px color-mix(in oklab, var(--sec2) 85%, transparent);
+}
+
+/* Leaning away under a finger reads as physical in a way a flat scale does not. */
+.v-tilt .note-card:active,
+.v-tilt .panel:active,
+.v-tilt .capsule:active,
+.v-tilt .fit-card:active,
+.v-tilt .search-hit:active,
+.v-tilt .gallery-cell:active {
+  transform: perspective(700px) rotateX(4deg) scale(0.985);
+}
+
+.v-float .panel,
+.v-float .note-card,
+.v-float .capsule { animation: float-bob 7s ease-in-out infinite alternate; }
+
+.v-float .note-card:nth-child(even) { animation-duration: 9s; animation-delay: -3s; }
+
+@keyframes float-bob {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, -3px, 0); }
+}
+
+/* ---- colour -------------------------------------------------------------- */
+
+/* A wider gradient than the static one, slid across the text rather than
+   recoloured — animating background-position stays off the main thread. */
+.v-gradientText.v-hueShift .screen-title {
+  background: linear-gradient(
+    110deg,
+    var(--text) 12%,
+    var(--sec2) 34%,
+    var(--sec) 50%,
+    var(--a3) 66%,
+    var(--text) 90%
+  );
+  background-size: 280% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hue-drift 11s ease-in-out infinite alternate;
+}
+
+@keyframes hue-drift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+.v-neon .you-button {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--text) 12%, transparent),
+    0 0 18px -2px color-mix(in oklab, var(--a1) 70%, transparent);
+}
+
+.v-neon .header-icon { border-color: color-mix(in oklab, var(--sec2) 35%, transparent); }
+.v-neon .tab.is-active .tab-icon { filter: drop-shadow(0 0 7px color-mix(in oklab, var(--sec) 85%, transparent)); }
+
+.v-neon .send,
+.v-neon .note-new,
+.v-neon .rec-start { box-shadow: 0 0 22px -6px color-mix(in oklab, var(--sec) 85%, transparent); }
+
+.v-neon .stub-phase { text-shadow: 0 0 10px color-mix(in oklab, currentColor 60%, transparent); }
+
+/* ---- motion -------------------------------------------------------------- */
+
+/* The pill is placed by measurement in TabBar; this is only how it moves. */
+html:not(.v-tabPill) .tab-pill { display: none; }
+
+.tab-pill.is-ready {
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.4, 0.5, 1),
+    width 0.42s cubic-bezier(0.34, 1.4, 0.5, 1),
+    opacity 0.2s ease;
+}
+
+/* With the pill carrying the highlight, the old bloom would be doubled up. */
+.v-tabPill .tab .tab-glow { opacity: 0; }
+.v-tabPill .tab.is-active .tab-glow { opacity: 0.5; }
+
+.v-kenBurns .gallery-cell .media-real,
+.v-kenBurns .fit-card .media-real {
+  animation: ken-burns 26s ease-in-out infinite alternate;
+}
+
+@keyframes ken-burns {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to   { transform: scale(1.12) translate3d(-1.5%, -2%, 0); }
+}
+
+/* ---- chat ---------------------------------------------------------------- */
+
+.v-bubbleGlow .row.is-mine .bubble {
+  box-shadow: 0 6px 24px -10px color-mix(in oklab, var(--a1) 85%, transparent);
+}
+
+.v-bubbleGlow .row.is-theirs .bubble {
+  box-shadow: 0 4px 18px -12px color-mix(in oklab, var(--a2) 70%, transparent);
+}
+
+/* One pass of light as a message lands, then nothing — a bubble that shines
+   forever is a bubble you stop reading. */
+.v-bubbleShine .bubble::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(100deg, transparent 38%, rgba(255, 255, 255, 0.22) 50%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  animation: bubble-shine 1s ease-out 0.1s 1 both;
+  pointer-events: none;
+}
+
+/* The one effect here that repaints rather than composites: moving the element
+   would slide it out past the bubble, which cannot clip without cutting the
+   tail off. It is a single one-second pass on a small box. */
+@keyframes bubble-shine {
+  from { opacity: 0; background-position: 100% 0; }
+  30%  { opacity: 1; }
+  to   { opacity: 0; background-position: 0 0; }
+}
+
+/* ---- honouring the OS setting -------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .atmo-orbs span,
+  .atmo-ribbons span,
+  .atmo-stars span,
+  .atmo-horizon,
+  .atmo-edge,
+  .fx-ring,
+  .v-float .panel,
+  .v-float .note-card,
+  .v-float .capsule,
+  .v-kenBurns .gallery-cell .media-real,
+  .v-kenBurns .fit-card .media-real,
+  .v-gradientText.v-hueShift .screen-title { animation: none; }
+
+  .atmo-stars span { opacity: 0.45; }
+  .v-bubbleShine .bubble::after { display: none; }
+}
