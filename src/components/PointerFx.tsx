@@ -5,9 +5,15 @@ import { useVisuals } from '../store/visuals'
  * The two effects that have to follow a finger: a soft light under it, and a
  * ring left behind wherever you tap.
  *
- * Both are driven by writing CSS custom properties rather than React state —
- * a pointermove that re-rendered the tree would be a frame killer. Positions
- * are written once per animation frame, not once per event.
+ * The light is a small fixed-size element that gets *moved*. The obvious
+ * implementation — a full-screen element whose background gradient is
+ * repositioned — repaints and re-blends the entire viewport on every pointer
+ * event, which on a desktop mouse is a few hundred full-screen repaints a
+ * second and makes scrolling unusable. Translating a 340px box is a compositor
+ * operation and costs nothing.
+ *
+ * Positions are written as inline transforms rather than React state: a
+ * pointermove that re-rendered the tree would be a frame killer either way.
  */
 export function PointerFx() {
   const spotlight = useVisuals((s) => s.enabled.spotlight)
@@ -28,8 +34,7 @@ export function PointerFx() {
 
     const paint = () => {
       queued = false
-      el.style.setProperty('--px', `${x}px`)
-      el.style.setProperty('--py', `${y}px`)
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`
     }
 
     const onMove = (e: PointerEvent) => {
@@ -62,10 +67,11 @@ export function PointerFx() {
     if (!host) return
 
     const onDown = (e: PointerEvent) => {
-      // Scrolling a list drags the pointer; only a real press should ring.
       if (e.pointerType === 'mouse' && e.button !== 0) return
       const ring = document.createElement('span')
       ring.className = 'fx-ring'
+      // left/top rather than a transform: the expanding animation owns the
+      // transform, and one write per tap is nowhere near hot enough to care.
       ring.style.left = `${e.clientX}px`
       ring.style.top = `${e.clientY}px`
       ring.addEventListener('animationend', () => ring.remove(), { once: true })

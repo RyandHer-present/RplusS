@@ -94,10 +94,30 @@ const FRAG = /* glsl */ `
 interface Props {
   /** Dial the whole effect down behind busy UI. */
   intensity?: number
+  /**
+   * Ceiling on how many pixels the shader actually renders, before CSS scales
+   * the canvas back up to fill its box.
+   *
+   * This matters far more than it looks. The fragment shader is four octaves
+   * of noise evaluated through two domain warps — roughly eighty noise lookups
+   * per pixel. On a phone-sized lock screen that is fine. Across a desktop
+   * viewport it is several hundred million lookups per frame, which is enough
+   * on integrated graphics to eat the frame budget the rest of the app needs
+   * to scroll. The output is heavily blurred by construction, so rendering it
+   * at a fraction of the resolution is invisible.
+   */
+  maxPixels?: number
+  /** Frames per second. The motion is slow enough that 60 buys nothing. */
+  fps?: number
   className?: string
 }
 
-export function AuroraBackground({ intensity = 1, className }: Props) {
+export function AuroraBackground({
+  intensity = 1,
+  maxPixels = 2_200_000,
+  fps = 60,
+  className,
+}: Props) {
   const host = useRef<HTMLDivElement>(null)
   const themeId = useTheme((s) => s.themeId)
 
@@ -138,6 +158,10 @@ export function AuroraBackground({ intensity = 1, className }: Props) {
 
     const resize = () => {
       const { clientWidth: w, clientHeight: h } = el
+      // Scale down whatever it takes to stay inside the pixel budget, then let
+      // the canvas stretch back over its box.
+      const ceiling = Math.sqrt(maxPixels / Math.max(w * h, 1))
+      renderer.dpr = Math.max(0.35, Math.min(Math.min(window.devicePixelRatio || 1, 1.5), ceiling))
       renderer.setSize(w, h)
       program.uniforms.uRes.value = [w, h]
     }
@@ -149,12 +173,18 @@ export function AuroraBackground({ intensity = 1, className }: Props) {
     let running = true
     let last = performance.now()
     let elapsed = 0
+    let drawn = 0
+    const interval = 1000 / fps
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       elapsed += dt
+      // Time keeps accumulating either way, so a skipped frame slows nothing
+      // down — it just is not drawn.
+      if (now - drawn < interval) return
+      drawn = now
       program.uniforms.uTime.value = elapsed
       renderer.render({ scene: mesh })
     }
@@ -188,7 +218,7 @@ export function AuroraBackground({ intensity = 1, className }: Props) {
       gl.canvas.remove()
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     }
-  }, [themeId, intensity])
+  }, [themeId, intensity, maxPixels, fps])
 
   return <div ref={host} className={className} aria-hidden="true" />
 }

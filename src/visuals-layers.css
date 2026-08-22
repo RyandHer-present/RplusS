@@ -28,7 +28,13 @@
   --sec2: var(--a2);
 }
 
-.shell { transition: --sec 0.7s ease, --sec2 0.7s ease; }
+/* Only these two subtrees cross-fade. Transitioning an inherited custom
+   property restyles everything below it on every frame of the transition, so
+   putting this on .shell meant restyling the entire app for 700ms each time
+   you changed tab — right when you are most likely to start scrolling.
+   Elsewhere the colour snaps, which at this saturation nobody can see. */
+.atmo-deep,
+.tabbar { transition: --sec 0.7s ease, --sec2 0.7s ease; }
 
 .v-sectionHue .shell[data-section="chat"]    { --sec: var(--a1); --sec2: var(--a3); }
 .v-sectionHue .shell[data-section="notes"]   { --sec: var(--a2); --sec2: var(--a1); }
@@ -51,15 +57,20 @@
 
 /* ---- background layers -------------------------------------------------- */
 
-.atmo-orbs,
-.atmo-ribbons,
-.atmo-stars,
-.atmo-horizon {
+.atmo-deep {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+}
+
+.atmo-orbs,
+.atmo-ribbons,
+.atmo-stars,
+.atmo-horizon {
+  position: absolute;
+  inset: 0;
   display: none;
 }
 
@@ -72,12 +83,11 @@
    into each other, the arrangement never visibly repeats. */
 .atmo-orbs span {
   position: absolute;
-  width: 62vmax;
-  height: 62vmax;
+  width: 46vmax;
+  height: 46vmax;
   border-radius: 50%;
   opacity: 0.5;
   mix-blend-mode: screen;
-  will-change: transform;
   animation: orb-drift 46s ease-in-out infinite alternate;
   animation-delay: calc(var(--i) * -9s);
   background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--sec) 42%, transparent), transparent 62%);
@@ -88,8 +98,8 @@
 .atmo-orbs span:nth-child(2) {
   top: -12%;
   left: 42%;
-  width: 48vmax;
-  height: 48vmax;
+  width: 38vmax;
+  height: 38vmax;
   --dx: -10%;
   --dy: 8%;
   --sc: 1.25;
@@ -100,8 +110,8 @@
 .atmo-orbs span:nth-child(3) {
   top: 45%;
   left: -34%;
-  width: 70vmax;
-  height: 70vmax;
+  width: 52vmax;
+  height: 52vmax;
   --dx: 12%;
   --dy: -7%;
   --sc: 1.1;
@@ -112,8 +122,8 @@
 .atmo-orbs span:nth-child(4) {
   top: 58%;
   left: 38%;
-  width: 54vmax;
-  height: 54vmax;
+  width: 42vmax;
+  height: 42vmax;
   opacity: 0.4;
   --dx: -8%;
   --dy: -10%;
@@ -122,18 +132,6 @@
   background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--a1) 38%, transparent), transparent 62%);
 }
 
-.atmo-orbs span:nth-child(5) {
-  top: 20%;
-  left: 8%;
-  width: 38vmax;
-  height: 38vmax;
-  opacity: 0.32;
-  --dx: 14%;
-  --dy: 12%;
-  --sc: 0.85;
-  animation-duration: 67s;
-  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--a2) 36%, transparent), transparent 60%);
-}
 
 @keyframes orb-drift {
   from { transform: translate3d(0, 0, 0) scale(1); }
@@ -150,7 +148,6 @@
   width: 220%;
   height: 26vh;
   mix-blend-mode: screen;
-  will-change: transform;
   background: linear-gradient(
     90deg,
     transparent 0%,
@@ -165,7 +162,6 @@
 
 .atmo-ribbons span:nth-child(1) { top: 4%; --rot: -9deg; --shift: 9%; }
 .atmo-ribbons span:nth-child(2) { top: 22%; --rot: 6deg; --shift: -12%; animation-duration: 47s; opacity: 0.75; }
-.atmo-ribbons span:nth-child(3) { top: 40%; --rot: -14deg; --shift: 7%; animation-duration: 59s; opacity: 0.5; }
 
 @keyframes ribbon-slide {
   from { transform: rotate(var(--rot, 0deg)) translate3d(calc(var(--shift, 6%) * -1), 0, 0); }
@@ -237,22 +233,25 @@
 .v-parallax .atmo-stars   { transform: translate3d(0, calc(var(--scroll, 0) * -20px), 0); }
 .v-parallax .atmo-orbs    { transform: translate3d(0, calc(var(--scroll, 0) * -44px), 0); }
 .v-parallax .atmo-ribbons { transform: translate3d(0, calc(var(--scroll, 0) * -78px), 0); }
-.v-parallax .shell-shader { opacity: calc(0.6 - var(--scroll, 0) * 0.3); }
 
 /* ---- pointer effects ----------------------------------------------------- */
 
 .fx-spotlight {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 340px;
+  height: 340px;
+  margin: -170px 0 0 -170px;
   z-index: 48;
   pointer-events: none;
   display: none;
   opacity: 0;
   transition: opacity 0.5s ease;
   background: radial-gradient(
-    180px 180px at var(--px, 50vw) var(--py, 50vh),
+    closest-side,
     color-mix(in oklab, var(--sec2) 22%, transparent),
-    transparent 70%
+    transparent 100%
   );
   mix-blend-mode: screen;
 }
