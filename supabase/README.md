@@ -115,3 +115,27 @@ Apply once, via `b2_update_bucket`:
 
 Adding a new origin later (a custom domain, a different dev port) means updating
 this list, or uploads from it will fail the same way.
+
+## 7. Visit alerting (optional)
+
+Run `migrations/0011_visit_log.sql` in the SQL Editor, then:
+
+Dashboard -> **Edge Functions** -> **Secrets**, add one more:
+
+- `DISCORD_WEBHOOK_URL` - the full `https://discord.com/api/webhooks/...` URL
+
+It belongs here and nowhere else. The webhook is a credential: anyone holding
+it can post to the channel and can delete the webhook. The browser bundle is
+public, so a webhook shipped to the client would be readable by whoever the
+alerts are meant to catch.
+
+Then deploy. This function has to answer before anyone has logged in, so it
+skips the JWT check:
+
+```
+npx supabase functions deploy visit-alert --project-ref <ref> --no-verify-jwt
+```
+
+Throttling lives in the function: one alert per address per 12 hours, and at
+most 20 alerts an hour in total. Both are in `visit-alert/index.ts` if you want
+them louder or quieter.
