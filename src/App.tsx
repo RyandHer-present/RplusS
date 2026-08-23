@@ -5,6 +5,7 @@ import Lock from './screens/Lock'
 import { useSession } from './store/session'
 import { supabase } from './lib/supabase'
 import { usePeople } from './store/people'
+import { useVibe } from './store/vibe'
 
 // Route-level code splitting: the lock screen is all most sessions load first,
 // so the section bundles stay off the critical path.
@@ -14,6 +15,7 @@ const Gallery = lazy(() => import('./screens/Gallery'))
 const Voice = lazy(() => import('./screens/Voice'))
 const Fits = lazy(() => import('./screens/Fits'))
 const Jam = lazy(() => import('./screens/Jam'))
+const Play = lazy(() => import('./screens/Play'))
 const Logs = lazy(() => import('./screens/Logs'))
 const Search = lazy(() => import('./screens/Search'))
 const Visuals = lazy(() => import('./screens/Visuals'))
@@ -23,6 +25,8 @@ export default function App() {
   const role = useSession((s) => s.role)
   const loadPeople = usePeople((s) => s.load)
   const subscribePeople = usePeople((s) => s.subscribe)
+  const loadVibe = useVibe((s) => s.load)
+  const subscribeVibe = useVibe((s) => s.subscribe)
   const signOut = useSession((s) => s.signOut)
 
   // The remembered user and the Supabase session are stored separately, so they
@@ -45,6 +49,14 @@ export default function App() {
     return subscribePeople()
   }, [role, loadPeople, subscribePeople])
 
+  // The vibe belongs to the pair, so it is read once signed in and then
+  // watched — the other person changing it has to arrive here unprompted.
+  useEffect(() => {
+    if (!role) return
+    void loadVibe()
+    return subscribeVibe()
+  }, [role, loadVibe, subscribeVibe])
+
   if (!role) return <Lock />
 
   return (
@@ -56,6 +68,7 @@ export default function App() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/fits" element={<Fits />} />
           <Route path="/jam" element={<Jam />} />
+          <Route path="/play" element={<Play />} />
           <Route path="/voice" element={<Voice />} />
           <Route path="/you" element={<You />} />
           <Route path="/logs" element={<Logs />} />

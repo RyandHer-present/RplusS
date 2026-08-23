@@ -5,6 +5,8 @@ import { TABS, TabBar } from './TabBar'
 import { Atmosphere } from './Atmosphere'
 import { PointerFx } from './PointerFx'
 import { AuroraBackground } from './AuroraBackground'
+import { VibeLayer } from './VibeLayer'
+import { PartnerPointer } from './PartnerPointer'
 import { useUnread } from '../store/unread'
 import { useSession } from '../store/session'
 import { useVisuals } from '../store/visuals'
@@ -189,12 +191,16 @@ export function Shell() {
       {/* Slow-drifting colour behind every screen. Pure CSS gradients on one
           composited layer, so it costs nothing per frame. */}
       <div className="shell-ambient" aria-hidden="true" />
+      {/* The two coloured lights a shared vibe lays over the whole app. */}
+      <VibeLayer />
       <Atmosphere deepRef={deepRef} />
       <div className="shell-pane" ref={paneRef}>
         <Outlet />
       </div>
       <TabBar />
       <PointerFx />
+      {/* Above the tab bar so their finger is never hidden behind it. */}
+      <PartnerPointer />
     </div>
   )
 }

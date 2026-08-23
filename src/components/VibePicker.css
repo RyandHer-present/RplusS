@@ -1,0 +1,75 @@
+.vibe-blurb {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.vibe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.vibe-card {
+  position: relative;
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.6rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  /* Its own background rather than the app's, so a card previews the vibe it
+     represents instead of the one currently on. */
+  background: var(--vbg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.15s ease;
+}
+
+.vibe-card:active { transform: scale(0.975); }
+
+.vibe-card.is-on {
+  border-color: var(--v1);
+  box-shadow: 0 0 0 1px var(--v1), 0 8px 26px color-mix(in oklab, var(--v1) 28%, transparent);
+}
+
+.vibe-swatch {
+  display: block;
+  height: 2.1rem;
+  margin-bottom: 0.35rem;
+  border-radius: 0.6rem;
+  background:
+    radial-gradient(circle at 22% 40%, var(--v1) 0%, transparent 62%),
+    radial-gradient(circle at 72% 30%, var(--v2) 0%, transparent 58%),
+    radial-gradient(circle at 50% 88%, var(--v3) 0%, transparent 62%),
+    var(--vbg);
+}
+
+.vibe-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.vibe-line {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  /* Deliberately not var(--muted): the card is painted in its own palette, and
+     the app's muted colour can vanish against it. */
+  color: color-mix(in oklab, var(--v2) 55%, #ffffff 20%);
+  opacity: 0.85;
+}
+
+.vibe-current {
+  margin: 0.8rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.vibe-current strong { color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vibe-card { transition: none; }
+}

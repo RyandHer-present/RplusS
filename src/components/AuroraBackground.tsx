@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Renderer, Triangle, Program, Mesh, Color } from 'ogl'
 import { THEMES } from '../theme/themes'
-import { useTheme } from '../theme/useTheme'
+import { activeShader, useTheme } from '../theme/useTheme'
+import { useVibe } from '../store/vibe'
+import { VIBES } from '../theme/vibes'
 
 const VERT = /* glsl */ `
   attribute vec2 uv;
@@ -120,6 +122,7 @@ export function AuroraBackground({
 }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const themeId = useTheme((s) => s.themeId)
+  const vibe = useVibe((s) => s.vibe)
 
   useEffect(() => {
     const el = host.current
@@ -136,7 +139,12 @@ export function AuroraBackground({
     })
     const gl = renderer.gl
     const theme = THEMES[themeId]
-    const bg = new Color(theme.tokens['--bg'])
+    const shader = activeShader(themeId, vibe)
+    // The clear colour has to follow the vibe as well, or the edges of the
+    // canvas stay the old background while the shader recolours.
+    const bg = new Color(
+      (vibe ? VIBES[vibe].tokens['--bg'] : null) ?? theme.tokens['--bg'],
+    )
     gl.clearColor(bg.r, bg.g, bg.b, 1)
     el.appendChild(gl.canvas)
     gl.canvas.style.cssText = 'display:block;width:100%;height:100%;'
@@ -147,9 +155,9 @@ export function AuroraBackground({
       uniforms: {
         uTime: { value: 0 },
         uRes: { value: [1, 1] },
-        uC1: { value: theme.shader[0] },
-        uC2: { value: theme.shader[1] },
-        uC3: { value: theme.shader[2] },
+        uC1: { value: shader[0] },
+        uC2: { value: shader[1] },
+        uC3: { value: shader[2] },
         uBg: { value: [bg.r, bg.g, bg.b] },
         uIntensity: { value: intensity },
       },
@@ -218,7 +226,7 @@ export function AuroraBackground({
       gl.canvas.remove()
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     }
-  }, [themeId, intensity, maxPixels, fps])
+  }, [themeId, vibe, intensity, maxPixels, fps])
 
   return <div ref={host} className={className} aria-hidden="true" />
 }

@@ -1,0 +1,44 @@
+/* Positioned at the origin and moved entirely by transform, so following the
+   other person costs no layout work. */
+.partner-pointer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  /* Only opacity transitions — the position is eased in JS, and a transition
+     on transform would fight it. */
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+
+.partner-pointer-ring {
+  position: absolute;
+  top: -0.6rem;
+  left: -0.6rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--a3) 85%, transparent);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--a3) 45%, transparent) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 16px color-mix(in oklab, var(--a3) 55%, transparent);
+}
+
+.partner-pointer-name {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: var(--bg);
+  background: color-mix(in oklab, var(--a3) 90%, transparent);
+}

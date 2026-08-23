@@ -1,15 +1,18 @@
 import { useEffect, type ReactNode } from 'react'
-import { applyTheme, useTheme } from './useTheme'
+import { applyPalette, useTheme } from './useTheme'
 import { applyVisuals, useVisuals } from '../store/visuals'
+import { useVibe } from '../store/vibe'
+import './vibes.css'
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const themeId = useTheme((s) => s.themeId)
+  const vibe = useVibe((s) => s.vibe)
 
   const enabled = useVisuals((s) => s.enabled)
 
   useEffect(() => {
-    applyTheme(themeId)
-  }, [themeId])
+    applyPalette(themeId, vibe)
+  }, [themeId, vibe])
 
   useEffect(() => {
     applyVisuals(enabled)

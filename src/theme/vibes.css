@@ -1,0 +1,157 @@
+/*
+ * The extra layer a vibe brings.
+ *
+ * A palette swap on its own reads as the same screen with the hue nudged, so a
+ * vibe also lays two coloured lights over everything and, for some of them,
+ * changes how surfaces behave — sharper edges for Neon, softer ones for
+ * Lavender, a slow drift for Deep sea.
+ *
+ * Everything here animates only colour, transform and opacity, and sits behind
+ * the interface with pointer-events off, so none of it can affect layout, cost
+ * a reflow, or swallow a tap.
+ */
+
+.vibe-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+:root[data-vibe] .vibe-wash {
+  opacity: 1;
+}
+
+/* Two lights, drifting past each other on long unequal loops so they never
+   settle into a visible cycle. */
+.vibe-wash::before,
+.vibe-wash::after {
+  content: '';
+  position: absolute;
+  width: 85vmax;
+  height: 85vmax;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+}
+
+.vibe-wash::before {
+  background: radial-gradient(circle, var(--wash-1) 0%, transparent 62%);
+  opacity: 0.3;
+  top: -30vmax;
+  left: -25vmax;
+  animation: vibe-drift-a 34s ease-in-out infinite alternate;
+}
+
+.vibe-wash::after {
+  background: radial-gradient(circle, var(--wash-2) 0%, transparent 62%);
+  opacity: 0.26;
+  bottom: -32vmax;
+  right: -26vmax;
+  animation: vibe-drift-b 43s ease-in-out infinite alternate;
+}
+
+@keyframes vibe-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(14vmax, 10vmax, 0) scale(1.16); }
+}
+
+@keyframes vibe-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to   { transform: translate3d(-12vmax, -9vmax, 0) scale(1); }
+}
+
+/* A thin bar naming the vibe, so it is obvious the other person changed it
+   rather than something having gone wrong with the colours. */
+.vibe-banner {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 0.6rem);
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  border: 1px solid color-mix(in oklab, var(--a1) 40%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px color-mix(in oklab, var(--a1) 22%, transparent);
+  animation: vibe-banner-in 0.45s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.vibe-banner-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: linear-gradient(120deg, var(--wash-1), var(--wash-2));
+}
+
+@keyframes vibe-banner-in {
+  from { opacity: 0; transform: translate(-50%, -0.6rem); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ---- how each one carries itself ---- */
+
+/* Neon: hard edges, everything glowing slightly. */
+:root[data-vibe='neon'] .jam-row,
+:root[data-vibe='neon'] .panel,
+:root[data-vibe='neon'] .log-row {
+  border-color: color-mix(in oklab, var(--a1) 42%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--a1) 12%, transparent),
+              0 6px 26px color-mix(in oklab, var(--a2) 16%, transparent);
+}
+
+:root[data-vibe='neon'] .screen-title {
+  text-shadow: 0 0 18px color-mix(in oklab, var(--a1) 55%, transparent);
+}
+
+/* Lavender: nothing sharp anywhere. */
+:root[data-vibe='lavender'] .jam-row,
+:root[data-vibe='lavender'] .panel,
+:root[data-vibe='lavender'] .backup-btn {
+  border-radius: 1.5rem;
+  border-color: transparent;
+}
+
+:root[data-vibe='lavender'] .vibe-wash::before,
+:root[data-vibe='lavender'] .vibe-wash::after {
+  filter: blur(90px);
+  opacity: 0.38;
+}
+
+/* Deep sea: the lights move like water rather than drifting. */
+:root[data-vibe='deepsea'] .vibe-wash::before { animation-duration: 58s; }
+:root[data-vibe='deepsea'] .vibe-wash::after  { animation-duration: 71s; }
+
+/* Golden hour and Ember: warmth pooled at the bottom, like low sun. */
+:root[data-vibe='goldenhour'] .vibe-wash::after,
+:root[data-vibe='ember'] .vibe-wash::after {
+  opacity: 0.4;
+  bottom: -40vmax;
+}
+
+/* Frost: brighter, cleaner, less of a glow. */
+:root[data-vibe='frost'] .vibe-wash::before,
+:root[data-vibe='frost'] .vibe-wash::after {
+  opacity: 0.2;
+  filter: blur(48px);
+}
+
+/* Cherry: the lights sit closer in and read as warmer. */
+:root[data-vibe='cherry'] .vibe-wash::before { opacity: 0.34; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vibe-wash::before,
+  .vibe-wash::after { animation: none; }
+  .vibe-banner { animation: none; }
+  .vibe-wash { transition: none; }
+}

@@ -8,6 +8,7 @@ import { isMuted, setMuted, sfx } from '../lib/sound'
 import { signOutRemote } from '../lib/auth'
 import { MOODS, usePeople } from '../store/people'
 import { BackupPanel } from '../components/BackupPanel'
+import { VibePicker } from '../components/VibePicker'
 import { InstallHint } from '../components/InstallHint'
 import './You.css'
 
@@ -77,6 +78,8 @@ export default function You() {
           </div>
         </section>
       )}
+
+      <VibePicker />
 
       <section className="panel">
         <h2 className="panel-title">Theme</h2>

@@ -5,17 +5,42 @@ import type { UserId } from './session'
 
 const TYPING_TIMEOUT = 2600
 
+/**
+ * How often a pointer position goes out, in milliseconds. Sending on every
+ * pointer event would be dozens of messages a second for something the eye
+ * cannot follow that finely, and the receiving end smooths between them
+ * anyway.
+ */
+const POINTER_INTERVAL = 60
+
+/** Their pointer is dropped if nothing arrives for this long. */
+export const POINTER_STALE = 2500
+
+/** Where the other person is touching, as a fraction of the viewport. */
+export interface Pointer {
+  x: number
+  y: number
+  /** Which screen they are on, so a dot is never shown over a different one. */
+  path: string
+  at: number
+  down: boolean
+}
+
 interface PresenceState {
   otherOnline: boolean
   otherTyping: boolean
   otherLastSeen: string | null
+  otherPointer: Pointer | null
   setTyping: (typing: boolean) => void
+  sendPointer: (x: number, y: number, path: string, down: boolean) => void
+  clearPointer: () => void
   connect: (me: UserId) => () => void
 }
 
 let channel: RealtimeChannel | null = null
 let typingTimer: number | undefined
 let lastSentTyping = false
+let lastPointerSent = 0
 // Avoids writing a run of identical events when a tab is switched repeatedly.
 let lastLogged: 'online' | 'offline' | null = null
 
@@ -30,6 +55,7 @@ export const usePresence = create<PresenceState>()((set) => ({
   otherOnline: false,
   otherTyping: false,
   otherLastSeen: null,
+  otherPointer: null,
 
   /**
    * Typing is a broadcast rather than a database write — it changes many times
@@ -53,6 +79,22 @@ export const usePresence = create<PresenceState>()((set) => ({
     }
   },
 
+  /**
+   * Broadcast, never stored. A cursor position is worthless a second later, so
+   * none of this touches the database.
+   */
+  sendPointer: (x, y, path, down) => {
+    const now = Date.now()
+    // A press or release goes out immediately; movement is throttled.
+    if (!down && now - lastPointerSent < POINTER_INTERVAL) return
+    lastPointerSent = now
+    void channel?.send({ type: 'broadcast', event: 'pointer', payload: { x, y, path, down } })
+  },
+
+  clearPointer: () => {
+    void channel?.send({ type: 'broadcast', event: 'pointer-gone', payload: {} })
+  },
+
   connect: (me) => {
     if (!supabase) return () => {}
 
@@ -66,10 +108,32 @@ export const usePresence = create<PresenceState>()((set) => ({
         set({ otherOnline: others.length > 0 })
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
-        if (key !== me) set({ otherOnline: false, otherTyping: false, otherLastSeen: new Date().toISOString() })
+        if (key !== me) {
+          set({
+            otherOnline: false,
+            otherTyping: false,
+            otherPointer: null,
+            otherLastSeen: new Date().toISOString(),
+          })
+        }
       })
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
         set({ otherTyping: Boolean(payload?.typing) })
+      })
+      .on('broadcast', { event: 'pointer' }, ({ payload }) => {
+        if (typeof payload?.x !== 'number' || typeof payload?.y !== 'number') return
+        set({
+          otherPointer: {
+            x: payload.x,
+            y: payload.y,
+            path: String(payload.path ?? ''),
+            down: Boolean(payload.down),
+            at: Date.now(),
+          },
+        })
+      })
+      .on('broadcast', { event: 'pointer-gone' }, () => {
+        set({ otherPointer: null })
       })
       .subscribe(async (status) => {
         if (status !== 'SUBSCRIBED') return

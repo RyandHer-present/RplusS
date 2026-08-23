@@ -1,0 +1,174 @@
+/* ---- scoreboard ---- */
+
+.play-score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.play-player {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.9rem;
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+}
+
+.play-chip {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  flex: none;
+}
+
+.play-player.is-r .play-chip { background: var(--a1); box-shadow: 0 0 10px var(--a1); }
+.play-player.is-s .play-chip { background: var(--a3); box-shadow: 0 0 10px var(--a3); }
+
+.play-player-name { font-size: 0.86rem; font-weight: 600; }
+
+.play-player-wins {
+  margin-left: auto;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- whose go ---- */
+
+.play-turn {
+  margin: 0 0 0.7rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.play-turn.is-yours { color: var(--text); }
+
+/* ---- board ---- */
+
+.play-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.3rem;
+  padding: 0.4rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--surface-2) 80%, transparent);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+}
+
+/* A whole column is the target, not a single cell — dropping into a column is
+   the actual move, and it makes each tap area far bigger on a phone. */
+.play-col {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.play-col:disabled { cursor: default; }
+
+.play-board.is-active .play-col:not(:disabled):hover {
+  background: color-mix(in oklab, var(--a2) 14%, transparent);
+}
+
+.play-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.45);
+  display: grid;
+  place-items: center;
+}
+
+.play-disc {
+  width: 84%;
+  height: 84%;
+  border-radius: 50%;
+  /* Dropped in rather than appearing: the fall is most of the feel of it. */
+  animation: play-drop 0.32s cubic-bezier(0.35, 1.5, 0.5, 1);
+}
+
+.play-cell.is-r .play-disc {
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--a1) 60%, white), var(--a1));
+  box-shadow: 0 2px 10px color-mix(in oklab, var(--a1) 55%, transparent);
+}
+
+.play-cell.is-s .play-disc {
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--a3) 60%, white), var(--a3));
+  box-shadow: 0 2px 10px color-mix(in oklab, var(--a3) 55%, transparent);
+}
+
+.play-cell.is-won .play-disc {
+  animation: play-drop 0.32s cubic-bezier(0.35, 1.5, 0.5, 1), play-flash 1.1s ease-in-out infinite;
+}
+
+@keyframes play-drop {
+  from { transform: translateY(-260%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes play-flash {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.75); }
+}
+
+/* ---- buttons ---- */
+
+.play-start,
+.play-restart {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.play-start {
+  border: none;
+  color: var(--bg);
+  background: linear-gradient(120deg, var(--a1), var(--a3));
+}
+
+.play-restart {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.play-start:active,
+.play-restart:active { transform: scale(0.97); }
+
+.play-none {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.play-empty,
+.play-note {
+  margin: 1.4rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-disc,
+  .play-cell.is-won .play-disc { animation: none; }
+  .play-col { transition: none; }
+}

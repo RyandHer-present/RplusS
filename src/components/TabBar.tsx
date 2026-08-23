@@ -70,6 +70,16 @@ export const TABS: Tab[] = [
     ),
   },
   {
+    to: '/play',
+    label: 'Play',
+    icon: (
+      <svg viewBox="0 0 24 24" {...stroke}>
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="3.4" />
+      </svg>
+    ),
+  },
+  {
     to: '/voice',
     label: 'Voice',
     icon: (

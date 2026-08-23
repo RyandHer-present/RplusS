@@ -54,9 +54,10 @@
   white-space: nowrap;
 }
 
-/* The narrowest phones leave about 48px a column, which the longest label
-   ("Gallery") only just fits. Tighten rather than let it clip. */
-@media (max-width: 360px) {
+/* Seven tabs leave roughly 50px a column on a normal phone and less on a small
+   one, which the longest label ("Gallery") only just fits. Tighten rather than
+   let it clip. */
+@media (max-width: 430px) {
   .tabbar { gap: 0.15rem; padding-left: 0.3rem; padding-right: 0.3rem; }
   .tab-label { font-size: 0.56rem; letter-spacing: 0.02em; }
   .tab-icon { width: 1.3rem; }
