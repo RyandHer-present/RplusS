@@ -15,6 +15,15 @@ interface ChatState {
   replyTo: Message | null
   editing: Message | null
   hasMore: boolean
+  /**
+   * Anchor for the virtualised list. Prepending older messages shifts every
+   * existing message's array index, which the list would otherwise read as
+   * "the content under your thumb changed" and correct for by scrolling. This
+   * counts down by exactly the number prepended so each message keeps the same
+   * virtual index for the list's whole life, and the view stays put.
+   */
+  firstItemIndex: number
+  loadingOlder: boolean
 
   load: () => Promise<void>
   loadOlder: () => Promise<void>
@@ -48,6 +57,10 @@ export const useChat = create<ChatState>()((set, get) => ({
   replyTo: null,
   editing: null,
   hasMore: false,
+  // Starts high so it can count down as history is pulled in; the absolute
+  // value is meaningless, only the deltas matter.
+  firstItemIndex: 1_000_000,
+  loadingOlder: false,
   queued: 0,
 
   load: async () => {
@@ -70,23 +83,49 @@ export const useChat = create<ChatState>()((set, get) => ({
       ;(reactions[r.message_id] ??= []).push(r)
     }
 
-    set({ messages, reactions, status: 'ready', hasMore: messages.length === PAGE_SIZE })
+    set({
+      messages,
+      reactions,
+      status: 'ready',
+      hasMore: messages.length === PAGE_SIZE,
+      firstItemIndex: 1_000_000,
+      loadingOlder: false,
+    })
   },
 
   loadOlder: async () => {
-    const { messages, hasMore } = get()
-    if (!supabase || !hasMore || !messages.length) return
+    const { messages, hasMore, loadingOlder } = get()
+    // The list fires this on every scroll event near the top, so without a
+    // guard a single flick upwards queues several overlapping pages.
+    if (!supabase || !hasMore || loadingOlder || !messages.length) return
+    set({ loadingOlder: true })
 
+    const oldest = messages[0].created_at
     const { data, error } = await supabase
       .from('messages')
       .select('*, media(*)')
-      .lt('created_at', messages[0].created_at)
+      .lt('created_at', oldest)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE)
 
-    if (error || !data) return
+    if (error || !data) {
+      set({ loadingOlder: false })
+      return
+    }
+
     const older = (data as Message[]).slice().reverse()
-    set({ messages: [...older, ...messages], hasMore: data.length === PAGE_SIZE })
+    // Re-read rather than closing over the array captured above: a realtime
+    // message can land while the page is in flight.
+    const current = get().messages
+    const known = new Set(current.map((m) => m.id))
+    const fresh = older.filter((m) => !known.has(m.id))
+
+    set({
+      messages: [...fresh, ...current],
+      hasMore: data.length === PAGE_SIZE,
+      firstItemIndex: get().firstItemIndex - fresh.length,
+      loadingOlder: false,
+    })
   },
 
   send: async (body, me, mediaId) => {

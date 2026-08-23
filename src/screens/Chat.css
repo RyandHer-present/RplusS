@@ -107,6 +107,19 @@
    a full-height column on top of the messages. */
 .chat-scroll { height: 100%; }
 
+/* Chrome silently adjusts scrollTop to keep whatever is on screen from moving
+   when content above it resizes — scroll anchoring. That is the right
+   behaviour for a normal page and the wrong one here: a virtualised list is
+   *constantly* resizing the space above you as it swaps rows in and out, and
+   it sets scrollTop itself. The two corrections fight, and the visible result
+   is the list yanking you upwards as you scroll down. Safari implements no
+   scroll anchoring at all, which is why this only ever showed up on desktop.
+
+   Chrome only anchors to a descendant, so suppressing it on the rows is what
+   actually does the work; the scroller is covered for good measure. */
+.chat-scroll,
+.chat-scroll * { overflow-anchor: none; }
+
 .chat-hint { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 2rem; }
 
 .chat-empty {

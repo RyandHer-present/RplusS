@@ -38,6 +38,7 @@ export default function Chat() {
   const status = useChat((s) => s.status)
   const load = useChat((s) => s.load)
   const loadOlder = useChat((s) => s.loadOlder)
+  const firstItemIndex = useChat((s) => s.firstItemIndex)
   const subscribe = useChat((s) => s.subscribe)
   const setReplyTo = useChat((s) => s.setReplyTo)
   const toggleReaction = useChat((s) => s.toggleReaction)
@@ -58,6 +59,12 @@ export default function Chat() {
   const [menuFor, setMenuFor] = useState<Message | null>(null)
   const [viewing, setViewing] = useState<Message | null>(null)
   const listRef = useRef<VirtuosoHandle>(null)
+
+  // Where the list opens. This has to be decided once: it is an *initial*
+  // position, and recomputing it from the live message count re-applies it as
+  // messages arrive, which drags the view off whatever you were reading.
+  const openAt = useRef<number | null>(null)
+  if (openAt.current === null && messages.length > 0) openAt.current = messages.length - 1
 
   useEffect(() => {
     void load()
@@ -93,11 +100,13 @@ export default function Chat() {
     (id: string) => {
       const index = messages.findIndex((m) => m.id === id)
       if (index >= 0) {
-        listRef.current?.scrollToIndex({ index, align: 'center', behavior: 'smooth' })
+        // Indexes are offset by firstItemIndex, so an array position is not a
+        // list position once any history has been loaded.
+        listRef.current?.scrollToIndex({ index: firstItemIndex + index, align: 'center', behavior: 'smooth' })
         haptic('tap')
       }
     },
-    [messages],
+    [messages, firstItemIndex],
   )
 
   const statusLine = otherTyping
@@ -157,12 +166,16 @@ export default function Chat() {
             ref={listRef}
             className="chat-scroll"
             data={messages}
-            followOutput="smooth"
-            initialTopMostItemIndex={messages.length - 1}
+            // Only follow new messages when you are already at the bottom, and
+            // jump rather than animate: a smooth scroll runs for hundreds of
+            // milliseconds, and a thumb moving during it fights the animation.
+            followOutput={(atBottom) => (atBottom ? 'auto' : false)}
+            firstItemIndex={firstItemIndex}
+            initialTopMostItemIndex={openAt.current ?? 0}
             startReached={() => void loadOlder()}
             increaseViewportBy={{ top: 400, bottom: 400 }}
             itemContent={(index, message) => {
-              const next = messages[index + 1]
+              const next = messages[index - firstItemIndex + 1]
               // Only the last message of a run shows its timestamp, so a burst
               // of messages does not turn into a wall of clock readings.
               const showTime =
