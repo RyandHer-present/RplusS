@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from './../lib/supabase'
+import { fetchPreview, previewable } from '../lib/spotify'
 import type { UserId } from './session'
 
 export type JamKind =
@@ -20,6 +21,10 @@ export interface Jam {
   kind: JamKind
   ended_at: string | null
   created_at: string
+  /** From Spotify oEmbed. Null for jam invites, which cannot be described. */
+  title: string | null
+  thumb_url: string | null
+  embed_url: string | null
 }
 
 /**
@@ -91,6 +96,7 @@ interface JamsState {
 
   load: () => Promise<void>
   post: (url: string, note: string, me: UserId) => Promise<boolean>
+  enrichMissing: () => Promise<void>
   setEnded: (id: string, ended: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
   subscribe: () => () => void
@@ -130,11 +136,19 @@ export const useJams = create<JamsState>()((set, get) => ({
     }
 
     set({ saving: true, error: null })
+
+    // Looked up before the insert rather than after, so the row arrives on the
+    // other person's screen already complete rather than filling in a beat later.
+    const preview = await fetchPreview(link)
+
     const { error } = await supabase.from('jams').insert({
       author_id: me,
       url: link,
       note: note.trim() || null,
       kind: kindOf(link),
+      title: preview?.title ?? null,
+      thumb_url: preview?.thumbUrl ?? null,
+      embed_url: preview?.embedUrl ?? null,
     })
     set({ saving: false })
 
@@ -144,6 +158,39 @@ export const useJams = create<JamsState>()((set, get) => ({
     }
     await get().load()
     return true
+  },
+
+  /**
+   * Fills in previews for anything posted before they existed.
+   *
+   * Runs once when the screen opens and quietly does nothing when there is
+   * nothing to do, which is the normal case. Jam invites are skipped rather
+   * than retried forever, since Spotify will never describe one.
+   */
+  enrichMissing: async () => {
+    if (!supabase) return
+
+    const pending = get().jams.filter((j) => !j.title && previewable(j.url))
+    if (!pending.length) return
+
+    let changed = false
+    for (const jam of pending) {
+      const preview = await fetchPreview(jam.url)
+      if (!preview) continue
+
+      const { error } = await supabase
+        .from('jams')
+        .update({
+          title: preview.title,
+          thumb_url: preview.thumbUrl,
+          embed_url: preview.embedUrl,
+        })
+        .eq('id', jam.id)
+
+      if (!error) changed = true
+    }
+
+    if (changed) await get().load()
   },
 
   setEnded: async (id, ended) => {

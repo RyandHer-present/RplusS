@@ -17,6 +17,9 @@ const KIND_LABEL: Record<string, string> = {
   link: 'Link',
 }
 
+/** Spotify gives these a list inside the player, which needs the room. */
+const TALL = new Set(['playlist', 'album', 'show', 'artist'])
+
 function JamIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -44,6 +47,7 @@ function JamRow({ jam, me, onEnd, onRemove }: {
   onRemove: (id: string) => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [playing, setPlaying] = useState(false)
   const live = isLive(jam)
   const mine = jam.author_id === me
 
@@ -75,7 +79,31 @@ function JamRow({ jam, me, onEnd, onRemove }: {
         {!live && !jam.ended_at && <span className="jam-stale">probably over</span>}
       </div>
 
-      {jam.note && <p className="jam-note">{jam.note}</p>}
+      <div className="jam-body">
+        {jam.thumb_url && (
+          <img className="jam-art" src={jam.thumb_url} alt="" loading="lazy" width={56} height={56} />
+        )}
+        <div className="jam-body-text">
+          {jam.title ? (
+            <p className="jam-title">{jam.title}</p>
+          ) : (
+            <p className="jam-title is-unknown">
+              {jam.kind === 'jam' ? 'Jam invite' : 'Spotify link'}
+            </p>
+          )}
+          {jam.note && <p className="jam-note">{jam.note}</p>}
+        </div>
+      </div>
+
+      {playing && jam.embed_url && (
+        <iframe
+          className={`jam-embed ${TALL.has(jam.kind) ? 'is-tall' : ''}`}
+          src={jam.embed_url}
+          title={jam.title ?? 'Spotify player'}
+          loading="lazy"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        />
+      )}
 
       <p className="jam-meta">
         <span className="jam-who">{USERS[jam.author_id]?.name ?? jam.author_id}</span>
@@ -95,6 +123,18 @@ function JamRow({ jam, me, onEnd, onRemove }: {
         >
           Open in Spotify
         </a>
+        {jam.embed_url && (
+          <button
+            type="button"
+            className="jam-btn"
+            onClick={() => {
+              haptic('select')
+              setPlaying((p) => !p)
+            }}
+          >
+            {playing ? 'Hide player' : 'Play here'}
+          </button>
+        )}
         <button type="button" className="jam-btn" onClick={copy}>
           {copied ? 'Copied' : 'Copy'}
         </button>
@@ -133,6 +173,7 @@ export default function Jam() {
   const saving = useJams((s) => s.saving)
   const error = useJams((s) => s.error)
   const load = useJams((s) => s.load)
+  const enrichMissing = useJams((s) => s.enrichMissing)
   const subscribe = useJams((s) => s.subscribe)
   const post = useJams((s) => s.post)
   const setEnded = useJams((s) => s.setEnded)
@@ -145,6 +186,12 @@ export default function Jam() {
     void load()
   }, [load])
   useEffect(() => subscribe(), [subscribe])
+
+  // Anything posted before previews existed gets filled in once, in the
+  // background. Does nothing at all in the normal case.
+  useEffect(() => {
+    void enrichMissing()
+  }, [jams.length, enrichMissing])
 
   // "live" is a function of the clock, not of the data, so nothing would
   // re-render when a jam ages out without a tick.

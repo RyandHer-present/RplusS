@@ -177,12 +177,61 @@
   background: color-mix(in oklab, var(--muted) 12%, transparent);
 }
 
-.jam-note {
+.jam-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.jam-art {
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.55rem;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.jam-body-text {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.jam-title {
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--text);
+  /* Track names run long and must not stretch the card. */
+  overflow-wrap: anywhere;
 }
+
+.jam-title.is-unknown {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.jam-note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* 152px is what Spotify asks for on a single track. Anything with a list
+   inside it needs the taller frame or the list is unusable. */
+.jam-embed {
+  width: 100%;
+  height: 152px;
+  border: 0;
+  border-radius: 0.75rem;
+  display: block;
+}
+
+.jam-embed.is-tall { height: 232px; }
 
 .jam-meta {
   display: flex;
