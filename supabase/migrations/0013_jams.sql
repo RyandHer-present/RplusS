@@ -1,7 +1,7 @@
 -- Jam links.
 --
 -- A Spotify Jam is a live session: the link works while the host has it open
--- and is dead afterwards. That single fact shapes the table — `ended_at` marks
+-- and is dead afterwards. That single fact shapes the table: `ended_at` marks
 -- one as over, and the screen treats an old link as probably dead even when
 -- nobody got round to marking it, because a link that silently stopped working
 -- is worse than one clearly labelled stale.
@@ -13,7 +13,7 @@ create table jams (
   id         uuid primary key default gen_random_uuid(),
   author_id  user_id not null references users(id),
   url        text not null,
-  -- What the sender wants to say about it. Optional; most are self-evident.
+  -- What the sender wants to say about it. Optional, and most are self-evident.
   note       text,
   -- 'jam', 'playlist', 'album', 'track', 'artist', 'episode', 'show', 'link'.
   kind       text not null default 'link',
@@ -46,7 +46,7 @@ alter publication supabase_realtime add table jams;
 create trigger audit_jams after insert or update or delete on jams
   for each row execute function record_change();
 
--- Posting one should ping; marking one ended should not, or every tidy-up
+-- Posting one should ping. Marking one ended should not, or every tidy-up
 -- would fire a card.
 insert into notify_settings (event, enabled, cooldown_seconds, include_detail) values
   ('jams.insert', true,  0, false),
