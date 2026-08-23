@@ -17,6 +17,7 @@ import './Play.css'
 
 export default function Play() {
   const me = useSession((s) => s.user)
+  const isAdmin = useSession((s) => s.isAdmin)
 
   const game = useGame((s) => s.game)
   const history = useGame((s) => s.history)
@@ -25,6 +26,8 @@ export default function Play() {
   const subscribe = useGame((s) => s.subscribe)
   const start = useGame((s) => s.start)
   const drop = useGame((s) => s.drop)
+  const scoreResetAt = useGame((s) => s.scoreResetAt)
+  const resetScore = useGame((s) => s.resetScore)
 
   useEffect(() => {
     void load()
@@ -36,7 +39,7 @@ export default function Play() {
     () => new Set((line ?? []).map(([r, c]) => `${r}-${c}`)),
     [line],
   )
-  const score = useMemo(() => tally(history), [history])
+  const score = useMemo(() => tally(history, scoreResetAt), [history, scoreResetAt])
 
   const mine = Boolean(game && !game.winner && game.turn === me)
 
@@ -69,6 +72,24 @@ export default function Play() {
           </div>
         ))}
       </div>
+
+      {isAdmin && (
+        <div className="play-admin">
+          <button
+            type="button"
+            className="play-reset"
+            onClick={() => {
+              haptic('error')
+              void resetScore()
+            }}
+          >
+            Reset score to 0 – 0
+          </button>
+          <p className="play-admin-note">
+            Clears the counter for both of you. The games themselves are kept.
+          </p>
+        </div>
+      )}
 
       {status === 'loading' && !game && <p className="play-empty">Loading…</p>}
 

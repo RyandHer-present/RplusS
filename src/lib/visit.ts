@@ -1,7 +1,10 @@
 import { supabase } from './supabase'
 
+const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/visit`
+
 const DEVICE_KEY = 'rpluss.device'
 const SESSION_KEY = 'rpluss.session'
+const ARRIVED_KEY = 'rpluss.arrived'
 
 /**
  * Tells the `visit` Edge Function that the page was opened.
@@ -20,7 +23,68 @@ const SESSION_KEY = 'rpluss.session'
  */
 export function reportVisit() {
   if (!supabase) return
-  void send()
+
+  try {
+    sessionStorage.setItem(ARRIVED_KEY, String(Date.now()))
+  } catch {
+    // Storage disabled. The leave report simply omits how long they stayed.
+  }
+
+  void send('enter')
+  watchForLeaving()
+}
+
+/**
+ * Reports the moment they go.
+ *
+ * A leaving page cannot wait for a normal request, and on a phone it is often
+ * never "unloaded" at all — it is backgrounded and killed later with nothing
+ * running. So this fires on `pagehide` and on the tab being hidden, whichever
+ * comes first, and sends a beacon: the browser takes ownership of delivering
+ * it after the page is gone.
+ *
+ * The beacon is sent as text/plain deliberately. It is one of the three types
+ * that need no CORS preflight, and a beacon cannot answer a preflight, so any
+ * other content type would simply never arrive. The function reads the body as
+ * JSON regardless of what the header claims.
+ */
+function watchForLeaving() {
+  let sent = false
+
+  const leave = () => {
+    if (sent) return
+    sent = true
+
+    const payload = JSON.stringify({ ...details(), event: 'leave', stayedMs: stayed() })
+    try {
+      navigator.sendBeacon(FUNCTION_URL, new Blob([payload], { type: 'text/plain' }))
+    } catch {
+      // Nothing to be done from a page that is already going.
+    }
+  }
+
+  // Coming back after being hidden counts as arriving again, so a phone put
+  // down and picked up reads as leave then enter rather than going quiet.
+  const onVisibility = () => {
+    if (document.visibilityState === 'hidden') leave()
+    else if (sent) {
+      sent = false
+      void send('enter')
+    }
+  }
+
+  window.addEventListener('pagehide', leave)
+  document.addEventListener('visibilitychange', onVisibility)
+}
+
+/** How long this visit has lasted, or null when it cannot be known. */
+function stayed(): number | null {
+  try {
+    const started = Number(sessionStorage.getItem(ARRIVED_KEY))
+    return started ? Date.now() - started : null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -60,18 +124,23 @@ function lastRole(): string | null {
   }
 }
 
-async function send() {
+/** Everything the browser knows that is worth saying, on either event. */
+function details() {
+  return {
+    deviceId: deviceId(),
+    role: lastRole(),
+    userAgent: navigator.userAgent.slice(0, 240),
+    screen: `${screen.width}x${screen.height}`,
+    language: navigator.language,
+    timezone: tz(),
+    referrer: document.referrer.slice(0, 200) || null,
+  }
+}
+
+async function send(event: 'enter' | 'leave') {
   try {
     await supabase!.functions.invoke('visit', {
-      body: {
-        deviceId: deviceId(),
-        role: lastRole(),
-        userAgent: navigator.userAgent.slice(0, 240),
-        screen: `${screen.width}x${screen.height}`,
-        language: navigator.language,
-        timezone: tz(),
-        referrer: document.referrer.slice(0, 200) || null,
-      },
+      body: { ...details(), event },
     })
   } catch {
     // Offline, blocked, or the function is down. Never surfaces.

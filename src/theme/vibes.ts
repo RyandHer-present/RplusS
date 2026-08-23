@@ -15,6 +15,7 @@
  */
 
 export type VibeId =
+  | 'dark'
   | 'neon'
   | 'goldenhour'
   | 'deepsea'
@@ -37,6 +38,26 @@ export interface Vibe {
 }
 
 export const VIBES: Record<VibeId, Vibe> = {
+  dark: {
+    id: 'dark',
+    name: 'Dark',
+    blurb: 'Lights off, nothing shouting',
+    tokens: {
+      '--bg': '#000000',
+      '--surface': '#0a0a0b',
+      '--surface-2': '#131315',
+      '--border': '#232326',
+      '--text': '#ededf0',
+      '--muted': '#7a7a82',
+      '--a1': '#8e8e96',
+      '--a2': '#b8b8c0',
+      '--a3': '#6e6e77',
+    },
+    // Near-grey on purpose. The background shader is still running, it simply
+    // has nothing colourful to run on.
+    shader: [[0.56, 0.56, 0.59], [0.72, 0.72, 0.75], [0.43, 0.43, 0.47]],
+    wash: ['#2a2a30', '#101014'],
+  },
   neon: {
     id: 'neon',
     name: 'Neon',

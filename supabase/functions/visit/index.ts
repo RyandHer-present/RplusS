@@ -44,6 +44,15 @@ function clean(value: unknown, max: number): string | null {
 
 const NAMES: Record<string, string> = { ry: 'Ry', sarah: 'Sarah', admin: 'admin' }
 
+/** Milliseconds as something a person reads at a glance. */
+function duration(ms: number): string {
+  const seconds = Math.round(ms / 1000)
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ${seconds % 60}s`
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+}
+
 Deno.serve(async (req) => {
   const headers = cors(req.headers.get('origin'))
   if (req.method === 'OPTIONS') return new Response('ok', { headers })
@@ -67,6 +76,8 @@ Deno.serve(async (req) => {
     // An empty body is fine; the address alone is still worth reporting.
   }
 
+  const leaving = body.event === 'leave'
+
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -74,11 +85,15 @@ Deno.serve(async (req) => {
   )
 
   // --- flood protection ----------------------------------------------------
+  // Keyed by address *and* event, so an arrival cannot swallow the departure
+  // that follows it a minute later. Each kind gets its own quiet period.
+  const key = leaving ? `${ip}#leave` : ip
+
   const now = Date.now()
   const { data: seen } = await admin
     .from('visit_alerts')
     .select('last_alert_at, suppressed')
-    .eq('ip', ip)
+    .eq('ip', key)
     .maybeSingle()
 
   const since = seen ? now - new Date(seen.last_alert_at).getTime() : Infinity
@@ -87,7 +102,7 @@ Deno.serve(async (req) => {
     await admin
       .from('visit_alerts')
       .update({ suppressed: (seen?.suppressed ?? 0) + 1 })
-      .eq('ip', ip)
+      .eq('ip', key)
     // Deliberately indistinguishable from a delivered alert. The caller has no
     // business knowing whether one was sent.
     return new Response(JSON.stringify({ ok: true }), { headers })
@@ -96,7 +111,7 @@ Deno.serve(async (req) => {
   const held = seen?.suppressed ?? 0
   await admin
     .from('visit_alerts')
-    .upsert({ ip, last_alert_at: new Date(now).toISOString(), suppressed: 0 })
+    .upsert({ ip: key, last_alert_at: new Date(now).toISOString(), suppressed: 0 })
 
   // --- known device --------------------------------------------------------
   const deviceId = clean(body.deviceId, 64)
@@ -118,27 +133,47 @@ Deno.serve(async (req) => {
         month: 'short',
         day: 'numeric',
       })
-      deviceLine = `seen before — ${device.visits + 1} visits since ${first}`
-      await admin
-        .from('visit_devices')
-        .update({
-          last_seen_at: new Date(now).toISOString(),
-          visits: device.visits + 1,
-          last_role: role,
-        })
-        .eq('device_id', deviceId)
+      // A departure is the same visit as the arrival that preceded it, so it
+      // reports the count without adding to it.
+      const count = leaving ? device.visits : device.visits + 1
+      deviceLine = `seen before — ${count} visits since ${first}`
+
+      if (!leaving) {
+        await admin
+          .from('visit_devices')
+          .update({
+            last_seen_at: new Date(now).toISOString(),
+            visits: device.visits + 1,
+            last_role: role,
+          })
+          .eq('device_id', deviceId)
+      }
     } else {
-      deviceLine = '**NEW — never seen before**'
-      await admin.from('visit_devices').insert({ device_id: deviceId, last_role: role })
+      deviceLine = leaving ? 'not recorded arriving' : '**NEW — never seen before**'
+      if (!leaving) {
+        await admin.from('visit_devices').insert({ device_id: deviceId, last_role: role })
+      }
     }
   }
 
   // --- post it -------------------------------------------------------------
+  // Discord renders these in whoever is reading, in their own timezone, so the
+  // time is right on a phone in another country without any conversion here.
+  const unix = Math.floor(now / 1000)
+
   const lines = [
+    `**When** <t:${unix}:f> (<t:${unix}:R>)`,
     `**IP** \`${ip}\``,
     `**Who** ${role ? `signed in as \`${role}\`` : '`not signed in`'}`,
     `**Device** ${deviceLine}`,
   ]
+
+  if (leaving) {
+    const stayed = typeof body.stayedMs === 'number' ? body.stayedMs : null
+    if (stayed !== null && stayed >= 0) {
+      lines.push(`**Stayed** \`${duration(stayed)}\``)
+    }
+  }
 
   const ua = clean(body.userAgent, 240)
   const screen = clean(body.screen, 20)
@@ -159,14 +194,24 @@ Deno.serve(async (req) => {
   // so the colour alone tells you whether to look closer.
   const known = role !== null && deviceKnown
 
+  const title = leaving
+    ? known
+      ? 'Left the site'
+      : 'Left the site — unrecognised'
+    : known
+      ? 'Site opened'
+      : 'Site opened — unrecognised'
+
   const payload = {
     username: 'R+S watch',
     embeds: [
       {
-        title: known ? 'Site opened' : 'Site opened — unrecognised',
+        title,
         description: lines.join('\n'),
-        color: known ? 0xff5cf0 : 0xff3b30,
+        // Grey for a departure: a record, rather than something to look at now.
+        color: leaving ? 0x8e8e96 : known ? 0xff5cf0 : 0xff3b30,
         timestamp: new Date(now).toISOString(),
+        footer: { text: new Date(now).toUTCString() },
       },
     ],
   }

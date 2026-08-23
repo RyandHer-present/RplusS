@@ -36,6 +36,38 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- admin ---- */
+
+.play-admin {
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.9rem;
+  border: 1px dashed color-mix(in oklab, var(--muted) 40%, transparent);
+}
+
+.play-reset {
+  width: 100%;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, #ff6b6b 45%, transparent);
+  background: transparent;
+  color: #ff6b6b;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.play-reset:active { transform: scale(0.985); }
+
+.play-admin-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--muted);
+}
+
 /* ---- whose go ---- */
 
 .play-turn {

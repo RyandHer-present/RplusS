@@ -146,6 +146,21 @@
   filter: blur(48px);
 }
 
+/* Dark: the point is restraint, so the lights barely register and nothing
+   glows. Everything else here adds; this one takes away. */
+:root[data-vibe='dark'] .vibe-wash::before,
+:root[data-vibe='dark'] .vibe-wash::after {
+  opacity: 0.12;
+  filter: blur(80px);
+}
+
+:root[data-vibe='dark'] .jam-row,
+:root[data-vibe='dark'] .panel,
+:root[data-vibe='dark'] .play-board {
+  box-shadow: none;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+}
+
 /* Cherry: the lights sit closer in and read as warmer. */
 :root[data-vibe='cherry'] .vibe-wash::before { opacity: 0.34; }
 

@@ -84,10 +84,13 @@ export function winningLine(board: string): [number, number][] | null {
 interface GameState {
   game: Game | null
   history: Game[]
+  /** Games before this do not count toward the score. Null means all of them. */
+  scoreResetAt: string | null
   status: 'idle' | 'loading' | 'ready'
   error: string | null
 
   load: () => Promise<void>
+  resetScore: () => Promise<void>
   start: (me: UserId) => Promise<void>
   drop: (col: number, me: UserId) => Promise<void>
   subscribe: () => () => void
@@ -96,6 +99,7 @@ interface GameState {
 export const useGame = create<GameState>()((set, get) => ({
   game: null,
   history: [],
+  scoreResetAt: null,
   status: 'idle',
   error: null,
 
@@ -116,7 +120,39 @@ export const useGame = create<GameState>()((set, get) => ({
     }
 
     const games = (data ?? []) as Game[]
-    set({ game: games[0] ?? null, history: games, status: 'ready', error: null })
+
+    const { data: settings } = await supabase
+      .from('game_settings')
+      .select('score_reset_at')
+      .eq('id', 1)
+      .maybeSingle()
+
+    set({
+      game: games[0] ?? null,
+      history: games,
+      scoreResetAt: (settings as { score_reset_at: string | null } | null)?.score_reset_at ?? null,
+      status: 'ready',
+      error: null,
+    })
+  },
+
+  /**
+   * Puts the score back to nothing without touching a single game.
+   *
+   * Admin only, enforced by the update policy rather than by hiding the
+   * button — the button is hidden too, but that is presentation.
+   */
+  resetScore: async () => {
+    if (!supabase) return
+    const now = new Date().toISOString()
+
+    const { error } = await supabase
+      .from('game_settings')
+      .update({ score_reset_at: now, reset_by: 'admin', reset_at: now })
+      .eq('id', 1)
+
+    if (error) set({ error: error.message })
+    else await get().load()
   },
 
   start: async (me) => {
@@ -183,9 +219,13 @@ export const useGame = create<GameState>()((set, get) => ({
   },
 }))
 
-/** Wins each, ignoring games still in progress. */
-export function tally(history: Game[]) {
-  return history.reduce(
+/**
+ * Wins each, ignoring games still in progress and anything played before the
+ * score was last reset.
+ */
+export function tally(history: Game[], since: string | null = null) {
+  const counted = since ? history.filter((g) => g.created_at > since) : history
+  return counted.reduce(
     (acc, g) => {
       if (g.winner === 'ry') acc.ry++
       else if (g.winner === 'sarah') acc.sarah++
