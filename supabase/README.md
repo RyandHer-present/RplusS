@@ -146,3 +146,54 @@ through it.
 function then does nothing. Deleting the webhook in Discord also works and is
 instant. The quiet period between alerts from one address is `COOLDOWN_SECONDS`
 at the top of `functions/visit/index.ts`.
+
+## 8. Pings for everything else
+
+Optional, and independent of step 7 — that one covers opening the site, this one
+covers what happens inside it: signing in, wrong PINs, messages, fits, gallery
+posts, voice notes, notes, edits and unsends.
+
+It hangs a single trigger on `audit_log`, which already records every insert,
+update and delete worth knowing about, so there is no per-table wiring and
+anything audited later is picked up for free.
+
+The webhook goes in **Vault**, not in a migration — migrations are committed.
+In the SQL Editor, once:
+
+```sql
+select vault.create_secret('<your webhook url>', 'discord_webhook_url');
+```
+
+Then run `migrations/0012_notify_discord.sql`, and redeploy the login function
+so sign-ins get recorded:
+
+```
+npx supabase functions deploy pin-login --no-verify-jwt --project-ref <ref>
+```
+
+**Turning individual pings on and off** is plain SQL — nothing to redeploy:
+
+```sql
+-- stop pinging on every message
+update notify_settings set enabled = false where event = 'messages.insert';
+
+-- quieter instead: one ping per person per 15 minutes
+update notify_settings set cooldown_seconds = 900 where event = 'messages.insert';
+
+-- stop quoting what was written
+update notify_settings set include_detail = false where event = 'messages.insert';
+
+-- see everything and its current state
+select * from notify_settings order by event;
+```
+
+The `*` row is the fallback for any event with no row of its own.
+
+**To switch all of these off**, drop the Vault secret:
+
+```sql
+select vault.delete_secret('discord_webhook_url');
+```
+
+Note this is a *second* copy of the webhook — step 7's alert reads its own from
+the `visit` function's secrets. Rotating the webhook means changing both.

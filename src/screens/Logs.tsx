@@ -101,6 +101,18 @@ export default function Logs() {
     [audit],
   )
 
+  // Coming online and signing in belong on the same timeline — read together
+  // they answer "was that them", which neither does alone.
+  const activityRows = useMemo(() => {
+    const rows = [
+      ...presence.map((e) => ({ kind: 'presence' as const, at: e.at, presence: e })),
+      ...audit
+        .filter((e) => e.action === 'login' || e.action === 'login_failed')
+        .map((e) => ({ kind: 'signin' as const, at: e.at, signin: e })),
+    ]
+    return rows.sort((a, b) => b.at.localeCompare(a.at))
+  }, [presence, audit])
+
   if (!isAdmin) {
     return (
       <div className="screen-scroll">
@@ -148,15 +160,40 @@ export default function Logs() {
 
       {tab === 'activity' && (
         <div className="log-list">
-          {presence.length === 0 && <p className="log-empty">No sessions recorded yet.</p>}
-          {presence.map((entry) => (
-            <div key={entry.id} className={`log-line ${entry.event === 'online' ? 'is-on' : 'is-off'}`}>
-              <span className="log-dot" aria-hidden="true" />
-              <span className="log-line-who">{USERS[entry.user_id].name}</span>
-              <span className="log-line-what">{entry.event === 'online' ? 'came online' : 'went offline'}</span>
-              <span className="log-when">{fullStamp(entry.at)}</span>
-            </div>
-          ))}
+          {activityRows.length === 0 && <p className="log-empty">No sessions recorded yet.</p>}
+          {activityRows.map((row) => {
+            if (row.kind === 'presence') {
+              const entry = row.presence
+              return (
+                <div
+                  key={`p${entry.id}`}
+                  className={`log-line ${entry.event === 'online' ? 'is-on' : 'is-off'}`}
+                >
+                  <span className="log-dot" aria-hidden="true" />
+                  <span className="log-line-who">{USERS[entry.user_id].name}</span>
+                  <span className="log-line-what">
+                    {entry.event === 'online' ? 'came online' : 'went offline'}
+                  </span>
+                  <span className="log-when">{fullStamp(entry.at)}</span>
+                </div>
+              )
+            }
+
+            const entry = row.signin
+            const failed = entry.action === 'login_failed'
+            const ip = (entry.detail as { ip?: unknown } | null)?.ip
+            return (
+              <div key={`s${entry.id}`} className={`log-line ${failed ? 'is-delete' : 'is-on'}`}>
+                <span className={`log-dot ${failed ? '' : 'is-add'}`} aria-hidden="true" />
+                <span className="log-line-who">{failed ? 'Someone' : actorName(entry.actor)}</span>
+                <span className="log-line-what">
+                  {failed ? 'got the PIN wrong' : 'signed in'}
+                  {typeof ip === 'string' ? ` from ${ip}` : ''}
+                </span>
+                <span className="log-when">{fullStamp(entry.at)}</span>
+              </div>
+            )
+          })}
         </div>
       )}
 

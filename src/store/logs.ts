@@ -7,7 +7,12 @@ export interface AuditEntry {
   id: number
   at: string
   actor: string | null
-  action: 'insert' | 'update' | 'delete'
+  /**
+   * The three row operations come from the audit triggers. The two sign-in
+   * kinds are written by the `pin-login` function, which has no table of its
+   * own to be audited.
+   */
+  action: 'insert' | 'update' | 'delete' | 'login' | 'login_failed'
   entity: string
   entity_id: string | null
   detail: Record<string, unknown> | null

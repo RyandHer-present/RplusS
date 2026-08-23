@@ -131,6 +131,15 @@ Deno.serve(async (req) => {
           : null,
       updated_at: new Date().toISOString(),
     })
+    // Recorded like any other event, so a run of wrong PINs shows up in the
+    // admin log and pings Discord the same way everything else does.
+    await admin.from('audit_log').insert({
+      actor: null,
+      action: 'login_failed',
+      entity: 'session',
+      detail: { ip, attempts },
+    })
+
     return new Response(JSON.stringify({ error: 'Wrong PIN' }), { status: 401, headers })
   }
 
@@ -151,6 +160,13 @@ Deno.serve(async (req) => {
   }
 
   await admin.from('login_attempts').delete().eq('ip', ip)
+
+  await admin.from('audit_log').insert({
+    actor: matched,
+    action: 'login',
+    entity: 'session',
+    detail: { ip },
+  })
 
   return new Response(
     JSON.stringify({
