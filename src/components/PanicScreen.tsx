@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { usePanic } from '../store/panic'
 import { verifyPin } from '../lib/auth'
 import './PanicScreen.css'
@@ -10,6 +10,9 @@ const KEYS = [
   ['1', '2', '3', '+'],
   ['0', '.', '='],
 ]
+
+/** The PIN is four digits; see supabase/functions/pin-login. */
+const PIN_LENGTH = 4
 
 const OPS: Record<string, (a: number, b: number) => number> = {
   '÷': (a, b) => a / b,
@@ -34,6 +37,16 @@ export function PanicScreen() {
   const [fresh, setFresh] = useState(true)
   const [checking, setChecking] = useState(false)
 
+  /*
+   * Every digit actually pressed, which is not the same as what the display
+   * shows. A calculator that showed "0412" while you typed it would not be a
+   * calculator, so the display drops leading zeros exactly as it should — and
+   * that made a PIN starting with 0 impossible to enter. This buffer keeps the
+   * keystrokes, the display keeps pretending, and the PIN is checked against
+   * what was typed.
+   */
+  const typed = useRef('')
+
   // The way back in when the page was reloaded while hidden: type the PIN and
   // press equals. Nothing on screen says so.
   const tryPin = async (candidate: string) => {
@@ -49,6 +62,7 @@ export function PanicScreen() {
 
   const press = (key: string) => {
     if (key === 'C') {
+      typed.current = ''
       setShown('0')
       setPending(null)
       setFresh(true)
@@ -56,14 +70,18 @@ export function PanicScreen() {
     }
 
     if (key === '=') {
-      if (sealed && !checking) {
-        void tryPin(shown).then((ok) => {
+      // Only attempted at the real PIN length. Verification is rate limited to
+      // eight tries, and spending one on every equals press would let ordinary
+      // arithmetic lock the way back in.
+      if (sealed && !checking && typed.current.length === PIN_LENGTH) {
+        void tryPin(typed.current).then((ok) => {
           if (!ok) {
+            typed.current = ''
             setShown('0')
             setFresh(true)
           }
         })
-        if (!pending) return
+        return
       }
       if (pending) {
         const result = OPS[pending.op](pending.value, Number(shown))
@@ -99,6 +117,7 @@ export function PanicScreen() {
       return
     }
 
+    typed.current = (typed.current + key).slice(-12)
     setShown((s) => (fresh || s === '0' ? key : s.length < 12 ? s + key : s))
     setFresh(false)
   }
