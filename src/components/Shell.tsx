@@ -8,9 +8,10 @@ import { AuroraBackground } from './AuroraBackground'
 import { VibeLayer } from './VibeLayer'
 import { PartnerPointer } from './PartnerPointer'
 import { useUnread } from '../store/unread'
-import { useSession } from '../store/session'
+import { USERS, useSession } from '../store/session'
 import { useVisuals } from '../store/visuals'
 import { haptic } from '../lib/haptics'
+import { setBadge } from '../lib/badge'
 import './Shell.css'
 
 const SWIPE_DISTANCE = 60 // px before a swipe counts
@@ -37,6 +38,14 @@ export function Shell() {
   const loadUnread = useUnread((s) => s.load)
   const subscribeUnread = useUnread((s) => s.subscribe)
   const markSeen = useUnread((s) => s.markSeen)
+  const counts = useUnread((s) => s.counts)
+
+  // Everything unread anywhere, as one number on the app icon. Runs on every
+  // change to the counts, including a section being marked read, so the badge
+  // comes down as well as up.
+  useEffect(() => {
+    void setBadge(Object.values(counts).reduce((sum, n) => sum + n, 0))
+  }, [counts])
 
   useEffect(() => {
     if (!me) return
@@ -197,10 +206,26 @@ export function Shell() {
       <div className="shell-pane" ref={paneRef}>
         <Outlet />
       </div>
+      <ViewingAsBanner />
       <TabBar />
       <PointerFx />
       {/* Above the tab bar so their finger is never hidden behind it. */}
       <PartnerPointer />
     </div>
+  )
+}
+
+/**
+ * Admin's lens is easy to forget you left on, and forgetting it means
+ * misreading the app as broken. It stays on screen until it is turned off.
+ */
+function ViewingAsBanner() {
+  const viewingAs = useSession((s) => s.viewingAs)
+  const setViewingAs = useSession((s) => s.setViewingAs)
+  if (!viewingAs) return null
+  return (
+    <button type="button" className="viewing-as-banner" onClick={() => setViewingAs(null)}>
+      Viewing as {USERS[viewingAs].name} — tap to stop
+    </button>
   )
 }

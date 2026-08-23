@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Media } from './types'
+import type { Stroke, Media } from './types'
 import type { UserId } from '../store/session'
 
 const MAX_EDGE = 2048
@@ -106,7 +106,7 @@ async function put(url: string, blob: Blob, contentType: string) {
  * Compresses an image, uploads it and its thumbnail, and records the row.
  * Returns the new media id.
  */
-export async function uploadImage(file: File, me: UserId): Promise<string> {
+export async function uploadImage(file: File, me: UserId, strokes?: Stroke[]): Promise<string> {
   if (!supabase) throw new Error('Not connected')
 
   const { full, thumb, blur, width, height } = await processImage(file)
@@ -138,6 +138,8 @@ export async function uploadImage(file: File, me: UserId): Promise<string> {
       width,
       height,
       bytes: full.size,
+      // Only doodles carry these; a photo has no path to replay.
+      strokes: strokes && strokes.length ? strokes : null,
     })
     .select()
     .single()

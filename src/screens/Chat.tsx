@@ -7,7 +7,7 @@ import { YouButton } from '../components/ScreenHeader'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
 import { usePeople } from '../store/people'
-import { USERS, useSession, type UserId } from '../store/session'
+import { USERS, useSession, useViewer, type UserId } from '../store/session'
 import { haptic } from '../lib/haptics'
 import type { Message } from '../lib/types'
 import './Chat.css'
@@ -30,8 +30,9 @@ export default function Chat() {
   const me = useSession((s) => s.user)
   const isAdmin = useSession((s) => s.isAdmin)
   // Admin is looking in from outside; the header still needs a subject, so it
-  // shows Sarah's side by convention.
-  const other: UserId = me === 'ry' ? 'sarah' : me === 'sarah' ? 'ry' : 'sarah'
+  // shows Sarah's side by convention — or whoever admin has chosen to view as.
+  const viewer = useViewer()
+  const other: UserId = viewer === 'ry' ? 'sarah' : viewer === 'sarah' ? 'ry' : 'sarah'
 
   const messages = useChat((s) => s.messages)
   const reactions = useChat((s) => s.reactions)

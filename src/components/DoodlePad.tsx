@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { haptic } from '../lib/haptics'
+import type { Stroke } from '../lib/types'
 import './DoodlePad.css'
 
 const COLORS = ['#ffffff', '#21d4fd', '#ff5cf0', '#ffb347', '#35e08a', '#ff4d6a']
@@ -8,7 +9,7 @@ const SIZES = [3, 7, 14]
 
 interface Props {
   onClose: () => void
-  onSend: (file: File) => void
+  onSend: (file: File, strokes: Stroke[]) => void
   busy?: boolean
 }
 
@@ -20,6 +21,12 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
   const [color, setColor] = useState(COLORS[0])
   const [size, setSize] = useState(SIZES[1])
   const [dirty, setDirty] = useState(false)
+
+  // The drawing is recorded as well as painted, so it can be watched being
+  // drawn later. Points are stored as fractions of the canvas rather than
+  // pixels, because it will be replayed at a different size than it was made.
+  const strokes = useRef<Stroke[]>([])
+  const current = useRef<Stroke | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -45,6 +52,15 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
     return { x: e.clientX - rect.left, y: e.clientY - rect.top }
   }
 
+  const record = (to: { x: number; y: number }) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect || !current.current) return
+    current.current.p.push([
+      Math.round((to.x / rect.width) * 1000) / 1000,
+      Math.round((to.y / rect.height) * 1000) / 1000,
+    ])
+  }
+
   const stroke = (to: { x: number; y: number }) => {
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx || !last.current) return
@@ -56,6 +72,7 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
     ctx.lineTo(to.x, to.y)
     ctx.stroke()
     last.current = to
+    record(to)
   }
 
   const clear = () => {
@@ -65,6 +82,8 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
     const rect = canvas.getBoundingClientRect()
     ctx.fillStyle = '#12121d'
     ctx.fillRect(0, 0, rect.width, rect.height)
+    strokes.current = []
+    current.current = null
     setDirty(false)
     haptic('error')
   }
@@ -72,7 +91,7 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
   const send = () => {
     canvasRef.current?.toBlob((blob) => {
       if (!blob) return
-      onSend(new File([blob], 'doodle.png', { type: 'image/png' }))
+      onSend(new File([blob], 'doodle.png', { type: 'image/png' }), strokes.current)
     }, 'image/png')
   }
 
@@ -94,9 +113,14 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId)
           drawing.current = true
-          last.current = pointAt(e)
+          const at = pointAt(e)
+          last.current = at
+          const rect = e.currentTarget.getBoundingClientRect()
+          current.current = { c: color, w: size / rect.width, p: [] }
+          strokes.current.push(current.current)
+          record(at)
           // A tap with no drag should still leave a dot.
-          stroke(pointAt(e))
+          stroke(at)
           setDirty(true)
         }}
         onPointerMove={(e) => {
@@ -106,10 +130,12 @@ export function DoodlePad({ onClose, onSend, busy }: Props) {
         onPointerUp={() => {
           drawing.current = false
           last.current = null
+          current.current = null
         }}
         onPointerCancel={() => {
           drawing.current = false
           last.current = null
+          current.current = null
         }}
       />
 

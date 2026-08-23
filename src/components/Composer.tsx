@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { DoodlePad } from './DoodlePad'
+import type { Stroke } from '../lib/types'
 import { uploadImage } from '../lib/media'
 import { useChat } from '../store/chat'
 import { usePresence } from '../store/presence'
@@ -26,11 +27,11 @@ export function Composer() {
 
   // Shared by the photo picker and the doodle pad: compress, upload, then send
   // the message that points at it.
-  const sendImage = async (file: File) => {
+  const sendImage = async (file: File, strokes?: Stroke[]) => {
     if (!me) return
     setAttaching(true)
     try {
-      const mediaId = await uploadImage(file, me)
+      const mediaId = await uploadImage(file, me, strokes)
       await send('', me, mediaId)
       setDoodling(false)
     } finally {
@@ -187,7 +188,7 @@ export function Composer() {
         <DoodlePad
           busy={attaching}
           onClose={() => setDoodling(false)}
-          onSend={(file) => void sendImage(file)}
+          onSend={(file, strokes) => void sendImage(file, strokes)}
         />
       )}
     </div>

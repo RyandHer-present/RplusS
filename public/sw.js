@@ -115,3 +115,91 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data === 'skip-waiting') void self.skipWaiting()
 })
+
+/*
+ * Push.
+ *
+ * Three jobs now, then. A push arrives whether or not the app is open, which is
+ * the entire reason this feature exists — on iOS the page is not merely hidden
+ * when closed, it is gone, and this worker is the only thing left running.
+ *
+ * The badge is set here as well as in the app, because setting it from the page
+ * only ever works while the page exists.
+ */
+
+const NOTIFY_TAG = 'rpluss'
+
+self.addEventListener('push', (event) => {
+  event.waitUntil(
+    (async () => {
+      let payload = {}
+      try {
+        payload = event.data ? event.data.json() : {}
+      } catch {
+        // A push with no readable payload still means "something happened", so
+        // it is worth showing rather than swallowing.
+      }
+
+      const title = payload.title || 'R+S'
+      const body = payload.body || 'Something new'
+      const path = payload.path || '/chat'
+
+      // Count what is already waiting so a second notification replaces the
+      // first rather than stacking, and the icon number stays truthful.
+      const existing = await self.registration.getNotifications({ tag: NOTIFY_TAG })
+      const count = existing.length + 1
+
+      if (self.registration.showNotification) {
+        await self.registration.showNotification(title, {
+          body,
+          tag: NOTIFY_TAG,
+          renotify: true,
+          icon: './icon-192.png',
+          badge: './icon-192.png',
+          data: { path },
+          timestamp: payload.at ? Date.parse(payload.at) : Date.now(),
+        })
+      }
+
+      if (self.navigator && 'setAppBadge' in self.navigator) {
+        try {
+          await self.navigator.setAppBadge(count)
+        } catch {
+          // Permission or platform. The notification itself still landed.
+        }
+      }
+    })(),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const path = (event.notification.data && event.notification.data.path) || '/chat'
+
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      // Reuse an open tab rather than opening a second copy of the app.
+      for (const client of clients) {
+        if (client.url.includes('/RplusS') && 'focus' in client) {
+          await client.focus()
+          client.postMessage({ type: 'navigate', path })
+          return
+        }
+      }
+      await self.clients.openWindow(`/RplusS/#${path}`)
+    })(),
+  )
+})
+
+// A subscription can be rotated by the browser without asking. When that
+// happens the old endpoint is dead and the page has to register the new one, so
+// the app is told the next time it opens.
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const client of clients) client.postMessage({ type: 'resubscribe' })
+    })(),
+  )
+})

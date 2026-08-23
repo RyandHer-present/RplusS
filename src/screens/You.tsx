@@ -10,6 +10,7 @@ import { MOODS, usePeople } from '../store/people'
 import { BackupPanel } from '../components/BackupPanel'
 import { VibePicker } from '../components/VibePicker'
 import { InstallHint } from '../components/InstallHint'
+import { PushPanel } from '../components/PushPanel'
 import './You.css'
 
 export default function You() {
@@ -18,6 +19,8 @@ export default function You() {
   const user = useSession((s) => s.user)
   const isAdmin = useSession((s) => s.isAdmin)
   const signOut = useSession((s) => s.signOut)
+  const viewingAs = useSession((s) => s.viewingAs)
+  const setViewingAs = useSession((s) => s.setViewingAs)
 
   const me = user ? USERS[user] : null
   const navigate = useNavigate()
@@ -51,8 +54,47 @@ export default function You() {
               <path d="M9 5l7 7-7 7" />
             </svg>
           </button>
+          <button type="button" className="panel-link" onClick={() => navigate('/health')}>
+            Health
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <h2 className="panel-title view-as-title">View as</h2>
+          <p className="panel-note">
+            Draws every screen the way they see it — their unread, their side of
+            the chat. It changes nothing and still cannot post.
+          </p>
+          <div className="view-as-row">
+            {(['ry', 'sarah'] as const).map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`view-as ${viewingAs === id ? 'is-on' : ''}`}
+                onClick={() => {
+                  setViewingAs(viewingAs === id ? null : id)
+                  haptic('tap')
+                }}
+              >
+                {USERS[id].name}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`view-as ${viewingAs === null ? 'is-on' : ''}`}
+              onClick={() => {
+                setViewingAs(null)
+                haptic('tap')
+              }}
+            >
+              Nobody
+            </button>
+          </div>
         </section>
       )}
+
+      <PushPanel />
 
       {user && (
         <section className="panel">

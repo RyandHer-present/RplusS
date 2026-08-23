@@ -1,0 +1,96 @@
+.health-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.health-rerun {
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.health-rerun:disabled { opacity: 0.55; }
+
+.health-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.health-row:last-of-type { border-bottom: none; }
+
+.health-dot {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.36rem;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+/* Green, amber and red are carried by more than colour alone — the wording of
+   the detail line says the same thing, so this reads without colour vision. */
+.health-row.is-ok .health-dot { background: #34d399; box-shadow: 0 0 8px rgba(52, 211, 153, 0.5); }
+.health-row.is-warn .health-dot { background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+.health-row.is-down .health-dot { background: #f87171; box-shadow: 0 0 8px rgba(248, 113, 113, 0.55); }
+
+.health-body { min-width: 0; flex: 1; }
+
+.health-label {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.health-ms {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.health-detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.health-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.2rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.health-count {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+}
+
+.health-count-n {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.health-count-l {
+  font-size: 0.72rem;
+  color: var(--muted);
+}

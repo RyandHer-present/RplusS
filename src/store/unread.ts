@@ -18,11 +18,14 @@ interface UnreadState {
   latest: Record<string, string>
   /** When you last looked at each section. */
   seen: Record<string, string>
+  /** How many unseen things are in each section, for the icon badge. */
+  counts: Record<string, number>
 
   load: (me: UserId) => Promise<void>
   subscribe: (me: UserId) => () => void
   markSeen: (path: string) => void
   isUnread: (path: string) => boolean
+  total: () => number
 }
 
 export const useUnread = create<UnreadState>()(
@@ -30,6 +33,7 @@ export const useUnread = create<UnreadState>()(
     (set, get) => ({
       latest: {},
       seen: {},
+      counts: {},
 
       load: async (me) => {
         if (!supabase) return
@@ -52,6 +56,21 @@ export const useUnread = create<UnreadState>()(
           if (row?.created_at) latest[SOURCES[i].path] = row.created_at
         })
         set((s) => ({ latest: { ...s.latest, ...latest } }))
+
+        // Counted separately from `latest`, because a badge needs a number and
+        // "is there anything new" only needs a timestamp.
+        const seen = get().seen
+        const counted = await Promise.all(
+          SOURCES.map(async ({ path, table, author }) => {
+            const looked = seen[path]
+            let query = supabase!.from(table).select('id', { head: true, count: 'exact' }).neq(author, me)
+            // No record of ever opening it means everything in it is unread.
+            if (looked) query = query.gt('created_at', looked)
+            const { count, error } = await query
+            return [path, error ? 0 : (count ?? 0)] as const
+          }),
+        )
+        set({ counts: Object.fromEntries(counted) })
       },
 
       subscribe: (me) => {
@@ -62,7 +81,10 @@ export const useUnread = create<UnreadState>()(
           channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table }, (payload) => {
             const row = payload.new as Record<string, unknown>
             if (row[author] === me) return
-            set((s) => ({ latest: { ...s.latest, [path]: String(row.created_at) } }))
+            set((s) => ({
+              latest: { ...s.latest, [path]: String(row.created_at) },
+              counts: { ...s.counts, [path]: (s.counts[path] ?? 0) + 1 },
+            }))
           })
         }
         channel.subscribe()
@@ -73,7 +95,10 @@ export const useUnread = create<UnreadState>()(
       },
 
       markSeen: (path) =>
-        set((s) => ({ seen: { ...s.seen, [path]: new Date().toISOString() } })),
+        set((s) => ({
+          seen: { ...s.seen, [path]: new Date().toISOString() },
+          counts: { ...s.counts, [path]: 0 },
+        })),
 
       isUnread: (path) => {
         const { latest, seen } = get()
@@ -82,6 +107,8 @@ export const useUnread = create<UnreadState>()(
         const looked = seen[path]
         return !looked || arrived > looked
       },
+
+      total: () => Object.values(get().counts).reduce((sum, n) => sum + n, 0),
     }),
     { name: 'rpluss.unread', partialize: (s) => ({ seen: s.seen }) },
   ),

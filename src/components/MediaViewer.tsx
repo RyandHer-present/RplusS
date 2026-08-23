@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { resolveMediaUrls, saveToDevice } from '../lib/media'
+import { DoodlePlayer } from './DoodlePlayer'
 import { haptic } from '../lib/haptics'
 import type { Media } from '../lib/types'
 import './MediaViewer.css'
@@ -77,7 +78,16 @@ export function MediaViewer({ media, caption, onClose, onDelete }: Props) {
           />
         )}
 
-        {url && media.kind !== 'video' && (
+        {url && media.kind !== 'video' && media.strokes?.length ? (
+          <div className="viewer-media" onClick={(e) => e.stopPropagation()}>
+            <DoodlePlayer
+              strokes={media.strokes}
+              poster={<img className="viewer-media" src={url} alt={caption ?? ''} />}
+            />
+          </div>
+        ) : null}
+
+        {url && media.kind !== 'video' && !media.strokes?.length && (
           <img className="viewer-media" src={url} alt={caption ?? ''} onClick={(e) => e.stopPropagation()} />
         )}
       </div>

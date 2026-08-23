@@ -159,3 +159,27 @@
 }
 .mood-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
 .mood.is-active .mood-label { color: var(--text); }
+
+/* ---- view as ---- */
+
+.view-as-title { margin-top: 1.1rem; }
+
+.view-as-row { display: flex; gap: 0.4rem; margin-top: 0.55rem; }
+
+.view-as {
+  flex: 1;
+  padding: 0.5rem 0.3rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.87rem;
+  font-weight: 600;
+}
+
+.view-as.is-on {
+  border-color: var(--a2);
+  color: var(--fg);
+  background: color-mix(in srgb, var(--a2) 14%, transparent);
+}

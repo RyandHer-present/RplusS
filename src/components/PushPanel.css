@@ -1,0 +1,26 @@
+.push-toggle {
+  width: 100%;
+  margin-top: 0.65rem;
+  padding: 0.62rem 0.8rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.push-toggle.is-on {
+  border-color: color-mix(in srgb, var(--a2) 55%, transparent);
+  background: color-mix(in srgb, var(--a2) 12%, transparent);
+}
+
+.push-toggle:disabled { opacity: 0.6; }
+
+.push-problem {
+  margin: 0.55rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #f0a3a3;
+}

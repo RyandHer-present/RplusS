@@ -100,3 +100,25 @@
   background: color-mix(in oklab, var(--a2) 14%, transparent);
   border: 1px solid color-mix(in oklab, var(--a2) 30%, transparent);
 }
+
+/* ---- admin's view-as lens ---- */
+
+.viewing-as-banner {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Clears the tab bar rather than sitting under it. */
+  bottom: calc(env(safe-area-inset-bottom) + 4.6rem);
+  z-index: 15;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--a2) 45%, transparent);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

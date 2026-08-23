@@ -1,3 +1,12 @@
+export interface Stroke {
+  /** Colour. */
+  c: string
+  /** Line width, as a fraction of the canvas width. */
+  w: number
+  /** Points, each [x, y] in 0..1. */
+  p: [number, number][]
+}
+
 import type { UserId } from '../store/session'
 
 export interface Message {
@@ -19,6 +28,11 @@ export interface Message {
 }
 
 export interface Media {
+  /**
+   * Recorded pen path for a doodle, in a 0..1 coordinate space so it replays at
+   * any size. Null for photos, and for every doodle sent before this existed.
+   */
+  strokes?: Stroke[] | null
   id: string
   owner_id: UserId
   kind: 'image' | 'video' | 'audio' | 'doodle'
