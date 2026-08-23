@@ -50,6 +50,16 @@
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   font-weight: 500;
+  /* Six tabs across: a wrapped label would push the bar taller than the rest. */
+  white-space: nowrap;
+}
+
+/* The narrowest phones leave about 48px a column, which the longest label
+   ("Gallery") only just fits. Tighten rather than let it clip. */
+@media (max-width: 360px) {
+  .tabbar { gap: 0.15rem; padding-left: 0.3rem; padding-right: 0.3rem; }
+  .tab-label { font-size: 0.56rem; letter-spacing: 0.02em; }
+  .tab-icon { width: 1.3rem; }
 }
 
 /* Soft accent bloom behind the active tab, faded in rather than toggled. */

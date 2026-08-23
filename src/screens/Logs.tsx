@@ -21,6 +21,7 @@ const ENTITY_LABEL: Record<string, string> = {
   fits: 'fit',
   gallery: 'gallery post',
   voice_notes: 'voice note',
+  jams: 'jam link',
   media: 'file',
 }
 

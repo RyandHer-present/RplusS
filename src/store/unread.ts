@@ -9,6 +9,7 @@ const SOURCES: { path: string; table: string; author: string }[] = [
   { path: '/notes', table: 'notes', author: 'author_id' },
   { path: '/gallery', table: 'gallery', author: 'author_id' },
   { path: '/fits', table: 'fits', author: 'author_id' },
+  { path: '/jam', table: 'jams', author: 'author_id' },
   { path: '/voice', table: 'voice_notes', author: 'author_id' },
 ]
 

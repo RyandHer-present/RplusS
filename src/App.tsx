@@ -13,6 +13,7 @@ const Notes = lazy(() => import('./screens/Notes'))
 const Gallery = lazy(() => import('./screens/Gallery'))
 const Voice = lazy(() => import('./screens/Voice'))
 const Fits = lazy(() => import('./screens/Fits'))
+const Jam = lazy(() => import('./screens/Jam'))
 const Logs = lazy(() => import('./screens/Logs'))
 const Search = lazy(() => import('./screens/Search'))
 const Visuals = lazy(() => import('./screens/Visuals'))
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/notes" element={<Notes />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/fits" element={<Fits />} />
+          <Route path="/jam" element={<Jam />} />
           <Route path="/voice" element={<Voice />} />
           <Route path="/you" element={<You />} />
           <Route path="/logs" element={<Logs />} />

@@ -1,0 +1,242 @@
+/* ---- composer ---- */
+
+.jam-composer {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+}
+
+.jam-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.jam-input-row .jam-input { flex: 1; min-width: 0; }
+
+.jam-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.jam-input::placeholder { color: var(--muted); }
+
+.jam-input:focus-visible {
+  outline: none;
+  border-color: color-mix(in oklab, var(--a2) 55%, transparent);
+}
+
+.jam-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.jam-preview {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.jam-post {
+  margin-left: auto;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--bg);
+  background: linear-gradient(120deg, var(--a1), var(--a2));
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.jam-post:disabled { opacity: 0.4; cursor: default; }
+.jam-post:not(:disabled):active { transform: scale(0.97); }
+
+.jam-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #ff6b6b;
+}
+
+/* ---- sections ---- */
+
+.jam-section { margin-bottom: 1.5rem; }
+
+.jam-heading {
+  margin: 0 0 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.jam-empty,
+.jam-footnote {
+  margin: 1.5rem 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.jam-footnote { font-size: 0.78rem; }
+
+/* ---- a row ---- */
+
+.jam-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+  border-radius: var(--radius);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.3s ease, opacity 0.3s ease;
+}
+
+.jam-row.is-live {
+  border-color: color-mix(in oklab, #1ed760 45%, transparent);
+}
+
+/* Dimmed rather than hidden: a dead link is still a record of what you played. */
+.jam-row.is-over { opacity: 0.72; }
+
+.jam-row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jam-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.jam-kind svg {
+  width: 1rem;
+  height: 1rem;
+  color: #1ed760;
+}
+
+.jam-live,
+.jam-ended,
+.jam-stale {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jam-live {
+  color: #1ed760;
+  background: color-mix(in oklab, #1ed760 15%, transparent);
+}
+
+.jam-live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  animation: jam-pulse 2s ease-in-out infinite;
+}
+
+@keyframes jam-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.jam-ended,
+.jam-stale {
+  color: var(--muted);
+  background: color-mix(in oklab, var(--muted) 12%, transparent);
+}
+
+.jam-note {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.jam-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.jam-who { font-weight: 600; color: var(--text); }
+.jam-dot { opacity: 0.5; }
+
+/* ---- actions ---- */
+
+.jam-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.jam-open {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #05170c;
+  background: #1ed760;
+  transition: transform 0.2s ease;
+}
+
+.jam-open:active { transform: scale(0.97); }
+
+.jam-btn {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.jam-btn:active { transform: scale(0.97); }
+.jam-btn.is-danger { color: #ff6b6b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jam-live-dot { animation: none; }
+  .jam-post,
+  .jam-open,
+  .jam-btn { transition: none; }
+}
