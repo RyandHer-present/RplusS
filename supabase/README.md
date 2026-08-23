@@ -115,3 +115,34 @@ Apply once, via `b2_update_bucket`:
 
 Adding a new origin later (a custom domain, a different dev port) means updating
 this list, or uploads from it will fail the same way.
+
+## 7. The visit alert
+
+Optional. Posts a Discord card when anyone opens the site, immediately, on every
+open — with the address, whether they are signed in, and whether the browser has
+been seen before.
+
+Run `migrations/0011_visit_alerts.sql` in the SQL Editor, then:
+
+Dashboard -> **Edge Functions** -> **Secrets**, add one:
+
+- `DISCORD_WEBHOOK_URL` — the webhook URL from Discord
+
+Then deploy. The function must answer callers who are not signed in, since the
+whole point is to hear about strangers, so it is deployed the same way as
+`pin-login`:
+
+```
+npx supabase functions deploy visit --no-verify-jwt --project-ref <ref>
+```
+
+The URL belongs in that secret and nowhere else. Do not put it in `.env` — that
+file is committed and compiled into the bundle, so a webhook there is readable
+by everyone who opens the site. That is not hypothetical: it is what happened to
+the first one, and it had to be deleted after a stranger found it and posted
+through it.
+
+**To switch the alerts off**, clear the `DISCORD_WEBHOOK_URL` secret; the
+function then does nothing. Deleting the webhook in Discord also works and is
+instant. The quiet period between alerts from one address is `COOLDOWN_SECONDS`
+at the top of `functions/visit/index.ts`.
