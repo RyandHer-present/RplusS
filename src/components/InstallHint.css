@@ -1,0 +1,30 @@
+.install-hint {
+  border-color: color-mix(in oklab, var(--a2) 30%, transparent);
+}
+
+.install-blurb,
+.install-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.install-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+}
+
+.install-steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.install-steps strong { font-weight: 600; }
+
+.install-steps::marker { color: var(--muted); }

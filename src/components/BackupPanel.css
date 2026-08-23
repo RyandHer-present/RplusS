@@ -1,0 +1,91 @@
+.backup-blurb,
+.backup-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.backup-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+}
+
+.backup-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.backup-btn {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.backup-btn span {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.backup-btn:active { transform: scale(0.985); }
+
+.backup-btn.is-primary {
+  border-color: color-mix(in oklab, var(--a1) 45%, transparent);
+  background: linear-gradient(
+    130deg,
+    color-mix(in oklab, var(--a1) 18%, var(--surface)),
+    color-mix(in oklab, var(--a3) 14%, var(--surface))
+  );
+}
+
+/* ---- while it runs ---- */
+
+.backup-running { display: grid; gap: 0.55rem; }
+
+.backup-bar {
+  height: 0.4rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--text) 10%, transparent);
+}
+
+.backup-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--a1), var(--a3));
+  transition: width 0.3s ease;
+}
+
+.backup-status {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  /* The label changes on every file; a fixed line stops the panel jumping. */
+  min-height: 1.2em;
+}
+
+.backup-ok,
+.backup-error {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+}
+
+.backup-ok { color: #4ade80; }
+.backup-error { color: #ff6b6b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .backup-btn,
+  .backup-bar-fill { transition: none; }
+}

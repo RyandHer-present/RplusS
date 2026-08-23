@@ -7,6 +7,8 @@ import { haptic, hapticsSupported } from '../lib/haptics'
 import { isMuted, setMuted, sfx } from '../lib/sound'
 import { signOutRemote } from '../lib/auth'
 import { MOODS, usePeople } from '../store/people'
+import { BackupPanel } from '../components/BackupPanel'
+import { InstallHint } from '../components/InstallHint'
 import './You.css'
 
 export default function You() {
@@ -137,6 +139,10 @@ export default function You() {
           <span className="toggle-track" aria-hidden="true"><span className="toggle-knob" /></span>
         </button>
       </section>
+
+      <InstallHint />
+
+      <BackupPanel />
 
       <section className="panel">
         <h2 className="panel-title">This device</h2>
