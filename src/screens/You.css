@@ -211,3 +211,5 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+.build-id { font-variant-numeric: tabular-nums; opacity: 0.75; }

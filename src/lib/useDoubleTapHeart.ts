@@ -19,6 +19,7 @@ export function useDoubleTapHeart(entity: ReactableEntity, id: string | null) {
     id ? (s.byTarget[`${entity}:${id}`] ?? []).some((r) => r.user_id === me && r.emoji === '❤️') : false,
   )
 
+  const problem = usePostReactions((s) => s.error)
   const lastTap = useRef(0)
   const [burst, setBurst] = useState(0)
 
@@ -57,5 +58,13 @@ export function useDoubleTapHeart(entity: ReactableEntity, id: string | null) {
     void toggle(entity, id, '❤️', me)
   }
 
-  return { onTap, like, unlike, liked: mine, burst, canLike: Boolean(me && id) }
+  return {
+    onTap,
+    like,
+    unlike,
+    liked: mine,
+    burst,
+    canLike: Boolean(me && id),
+    problem,
+  }
 }

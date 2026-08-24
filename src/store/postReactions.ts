@@ -17,6 +17,8 @@ interface PostReactionState {
   /** Keyed "entity:id", because a uuid alone is not unique across tables. */
   byTarget: Record<string, PostReaction[]>
   loaded: boolean
+  /** Why the last like failed, if it did. Shown rather than swallowed. */
+  error: string | null
 
   load: () => Promise<void>
   subscribe: () => () => void
@@ -28,6 +30,7 @@ interface PostReactionState {
 export const usePostReactions = create<PostReactionState>()((set, get) => ({
   byTarget: {},
   loaded: false,
+  error: null,
 
   load: async () => {
     if (!supabase) return
@@ -97,8 +100,16 @@ export const usePostReactions = create<PostReactionState>()((set, get) => ({
       : supabase.from('post_reactions').insert({ entity, entity_id: id, user_id: me, emoji })
 
     const { error } = await request
-    // Put it back the way it was if the write did not land.
-    if (error) void get().load()
+    if (error) {
+      // Silently reverting was the mistake here: a like that vanished looked
+      // identical to a like that was never attempted, which made this
+      // impossible to tell apart from the outside.
+      console.error('[RplusS] like failed', { entity, id, emoji, me, error })
+      set({ error: error.message || 'The like did not save.' })
+      void get().load()
+    } else {
+      set({ error: null })
+    }
   },
 
   for: (entity, id) => get().byTarget[keyFor(entity, id)] ?? [],

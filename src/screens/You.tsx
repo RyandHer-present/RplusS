@@ -229,6 +229,7 @@ export default function You() {
 
       <section className="panel">
         <h2 className="panel-title">This device</h2>
+        <p className="panel-note build-id">Build {__BUILD_ID__}</p>
         <dl className="facts">
           <div>
             <dt>Haptics</dt>

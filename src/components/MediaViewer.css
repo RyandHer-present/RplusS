@@ -118,3 +118,10 @@
 }
 
 .viewer-action.is-liked { color: #ff5c7a; }
+
+.viewer-problem {
+  margin: 0.3rem 1rem 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #f0a3a3;
+}

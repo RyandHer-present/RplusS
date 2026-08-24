@@ -117,6 +117,7 @@ export function MediaViewer({ media, caption, onClose, onDelete, likeEntity, lik
       </div>
 
       {caption && <p className="viewer-caption">{caption}</p>}
+      {heart.problem && <p className="viewer-problem">{heart.problem}</p>}
 
       <div className="viewer-actions">
         {heart.canLike && (
