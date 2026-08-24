@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import { MessageBubble } from '../components/MessageBubble'
+import { PlainChatScroll } from '../components/PlainChatScroll'
+import { useIsDesktop } from '../lib/device'
 import { Composer } from '../components/Composer'
 import { MediaViewer } from '../components/MediaViewer'
 import { YouButton } from '../components/ScreenHeader'
@@ -60,6 +62,7 @@ export default function Chat() {
   const [menuFor, setMenuFor] = useState<Message | null>(null)
   const [viewing, setViewing] = useState<Message | null>(null)
   const listRef = useRef<VirtuosoHandle>(null)
+  const isDesktop = useIsDesktop()
 
   // Where the list opens. This has to be decided once: it is an *initial*
   // position, and recomputing it from the live message count re-applies it as
@@ -109,6 +112,32 @@ export default function Chat() {
     },
     [messages, firstItemIndex],
   )
+
+  // Both scrollers render exactly this, so the two paths can never drift apart
+  // in appearance — only in how they are scrolled.
+  const renderBubble = (message: Message, next: Message | undefined) => {
+    // Only the last message of a run shows its timestamp, so a burst of
+    // messages does not turn into a wall of clock readings.
+    const showTime =
+      !next ||
+      next.sender_id !== message.sender_id ||
+      new Date(next.created_at).getTime() - new Date(message.created_at).getTime() > GROUP_GAP_MS
+
+    return (
+      <MessageBubble
+        message={message}
+        me={me}
+        replyTarget={message.reply_to_id ? byId.get(message.reply_to_id) : undefined}
+        reactions={reactions[message.id] ?? []}
+        showTime={showTime}
+        onReply={setReplyTo}
+        onQuickReact={(m) => me && void toggleReaction(m.id, '❤️', me)}
+        onMenu={setMenuFor}
+        onRetry={(m) => me && void retry(m.id, me)}
+        onOpenMedia={setViewing}
+      />
+    )
+  }
 
   const statusLine = otherTyping
     ? 'typing…'
@@ -163,43 +192,28 @@ export default function Chat() {
         )}
 
         {messages.length > 0 && (
-          <Virtuoso
-            ref={listRef}
-            className="chat-scroll"
-            data={messages}
-            // Only follow new messages when you are already at the bottom, and
-            // jump rather than animate: a smooth scroll runs for hundreds of
-            // milliseconds, and a thumb moving during it fights the animation.
-            followOutput={(atBottom) => (atBottom ? 'auto' : false)}
-            firstItemIndex={firstItemIndex}
-            initialTopMostItemIndex={openAt.current ?? 0}
-            startReached={() => void loadOlder()}
-            increaseViewportBy={{ top: 400, bottom: 400 }}
-            itemContent={(index, message) => {
-              const next = messages[index - firstItemIndex + 1]
-              // Only the last message of a run shows its timestamp, so a burst
-              // of messages does not turn into a wall of clock readings.
-              const showTime =
-                !next ||
-                next.sender_id !== message.sender_id ||
-                new Date(next.created_at).getTime() - new Date(message.created_at).getTime() > GROUP_GAP_MS
-
-              return (
-                <MessageBubble
-                  message={message}
-                  me={me}
-                  replyTarget={message.reply_to_id ? byId.get(message.reply_to_id) : undefined}
-                  reactions={reactions[message.id] ?? []}
-                  showTime={showTime}
-                  onReply={setReplyTo}
-                  onQuickReact={(m) => me && void toggleReaction(m.id, '❤️', me)}
-                  onMenu={setMenuFor}
-                  onRetry={(m) => me && void retry(m.id, me)}
-                  onOpenMedia={setViewing}
-                />
-              )
-            }}
-          />
+          isDesktop ? (
+            <PlainChatScroll messages={messages} onReachTop={() => void loadOlder()}>
+              {(message, index) => renderBubble(message, messages[index + 1])}
+            </PlainChatScroll>
+          ) : (
+            <Virtuoso
+              ref={listRef}
+              className="chat-scroll"
+              data={messages}
+              // Only follow new messages when you are already at the bottom, and
+              // jump rather than animate: a smooth scroll runs for hundreds of
+              // milliseconds, and a thumb moving during it fights the animation.
+              followOutput={(atBottom) => (atBottom ? 'auto' : false)}
+              firstItemIndex={firstItemIndex}
+              initialTopMostItemIndex={openAt.current ?? 0}
+              startReached={() => void loadOlder()}
+              increaseViewportBy={{ top: 400, bottom: 400 }}
+              itemContent={(index, message) =>
+                renderBubble(message, messages[index - firstItemIndex + 1])
+              }
+            />
+          )
         )}
 
         {otherTyping && (
