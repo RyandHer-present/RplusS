@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Shell } from './components/Shell'
 import Lock from './screens/Lock'
@@ -12,21 +12,23 @@ import { PanicScreen } from './components/PanicScreen'
 import { installPanicGesture } from './lib/panicGesture'
 import { resubscribe } from './lib/push'
 import { destinationFor, readIncoming } from './lib/incoming'
+import { lazyWithReload } from './lib/lazyWithReload'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Route-level code splitting: the lock screen is all most sessions load first,
 // so the section bundles stay off the critical path.
-const Chat = lazy(() => import('./screens/Chat'))
-const Notes = lazy(() => import('./screens/Notes'))
-const Gallery = lazy(() => import('./screens/Gallery'))
-const Voice = lazy(() => import('./screens/Voice'))
-const Fits = lazy(() => import('./screens/Fits'))
-const Jam = lazy(() => import('./screens/Jam'))
-const Play = lazy(() => import('./screens/Play'))
-const Logs = lazy(() => import('./screens/Logs'))
-const Health = lazy(() => import('./screens/Health'))
-const Search = lazy(() => import('./screens/Search'))
-const Visuals = lazy(() => import('./screens/Visuals'))
-const You = lazy(() => import('./screens/You'))
+const Chat = lazyWithReload(() => import('./screens/Chat'))
+const Notes = lazyWithReload(() => import('./screens/Notes'))
+const Gallery = lazyWithReload(() => import('./screens/Gallery'))
+const Voice = lazyWithReload(() => import('./screens/Voice'))
+const Fits = lazyWithReload(() => import('./screens/Fits'))
+const Jam = lazyWithReload(() => import('./screens/Jam'))
+const Play = lazyWithReload(() => import('./screens/Play'))
+const Logs = lazyWithReload(() => import('./screens/Logs'))
+const Health = lazyWithReload(() => import('./screens/Health'))
+const Search = lazyWithReload(() => import('./screens/Search'))
+const Visuals = lazyWithReload(() => import('./screens/Visuals'))
+const You = lazyWithReload(() => import('./screens/You'))
 
 export default function App() {
   const role = useSession((s) => s.role)
@@ -122,6 +124,7 @@ export default function App() {
   if (!role) return <Lock />
 
   return (
+    <ErrorBoundary>
     <Suspense fallback={<div className="shell" />}>
       <Routes>
         <Route element={<Shell />}>
@@ -141,5 +144,6 @@ export default function App() {
         </Route>
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }

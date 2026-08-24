@@ -1,0 +1,57 @@
+.crash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  /* Deliberately independent of the theme: a crash may well be the theme. */
+  background: #0a0a10;
+  color: #f0eef8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.crash-card {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.crash-title { margin: 0; font-size: 1.35rem; font-weight: 700; }
+
+.crash-body { margin: 0; font-size: 0.92rem; line-height: 1.5; color: #aaa6bd; }
+
+.crash-actions { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
+
+.crash-btn {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.8rem;
+  border: 1px solid #2c2a3d;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.crash-btn.is-primary { background: #6d4aff; border-color: #6d4aff; }
+
+.crash-detail { margin-top: 0.4rem; font-size: 0.8rem; color: #8b87a3; }
+.crash-detail summary { cursor: pointer; }
+
+.crash-detail pre {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem;
+  border-radius: 0.6rem;
+  background: #14131d;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 11rem;
+  overflow: auto;
+}
