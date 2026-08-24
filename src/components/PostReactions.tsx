@@ -1,7 +1,18 @@
-import { usePostReactions, type ReactableEntity } from '../store/postReactions'
+import { usePostReactions, type PostReaction, type ReactableEntity } from '../store/postReactions'
 import { useSession, USERS } from '../store/session'
 import { haptic } from '../lib/haptics'
 import './PostReactions.css'
+
+/*
+ * One shared empty array for every post that has no reactions yet.
+ *
+ * This must not be written inline as `?? []`. The store is read through
+ * useSyncExternalStore, which decides whether anything changed by comparing
+ * the selector's result to the last one by reference — so a fresh [] every
+ * call reads as "changed" every time, and the render loop never settles.
+ * React eventually gives up with "Maximum update depth exceeded".
+ */
+const NONE: PostReaction[] = []
 
 /** The same six the chat offers, so reacting means the same thing everywhere. */
 export const FULL_SET = ['❤️', '😂', '🔥', '😭', '💀', '👀']
@@ -17,7 +28,7 @@ interface Props {
 
 export function PostReactions({ entity, id, choices = ['❤️'], overlay }: Props) {
   const me = useSession((s) => s.user)
-  const reactions = usePostReactions((s) => s.byTarget[`${entity}:${id}`] ?? [])
+  const reactions = usePostReactions((s) => s.byTarget[`${entity}:${id}`] ?? NONE)
   const toggle = usePostReactions((s) => s.toggle)
 
   // Grouped so two people picking the same emoji is one chip showing two, not
