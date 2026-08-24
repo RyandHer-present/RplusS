@@ -37,11 +37,25 @@ export function useDoubleTapHeart(entity: ReactableEntity, id: string | null) {
     }
   }
 
+  /**
+   * Like it now, from a single press.
+   *
+   * A button labelled "Like" has to work on the first click. Wiring one to
+   * `onTap` means it silently does nothing until pressed twice quickly, which
+   * is exactly how this shipped broken.
+   */
+  const like = () => {
+    if (!me || !id || mine) return
+    haptic('success')
+    setBurst((n) => n + 1)
+    void toggle(entity, id, '❤️', me)
+  }
+
   const unlike = () => {
     if (!me || !id || !mine) return
     haptic('tap')
     void toggle(entity, id, '❤️', me)
   }
 
-  return { onTap, unlike, liked: mine, burst, canLike: Boolean(me && id) }
+  return { onTap, like, unlike, liked: mine, burst, canLike: Boolean(me && id) }
 }

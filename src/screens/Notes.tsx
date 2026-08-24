@@ -56,10 +56,7 @@ function Editor({
             type="button"
             className={`note-like ${heart.liked ? 'is-liked' : ''}`}
             aria-label={heart.liked ? 'Unlike' : 'Like'}
-            onClick={() => (heart.liked ? heart.unlike() : heart.onTap())}
-            // A single tap should like it here; the double tap window only
-            // exists so the gesture matches everywhere else it is offered.
-            onDoubleClick={heart.onTap}
+            onClick={() => (heart.liked ? heart.unlike() : heart.like())}
           >
             <svg viewBox="0 0 24 24" fill={heart.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 21s-7.5-4.7-9.3-9A5.3 5.3 0 0 1 12 6.5 5.3 5.3 0 0 1 21.3 12c-1.8 4.3-9.3 9-9.3 9z" />

@@ -123,7 +123,7 @@ export function MediaViewer({ media, caption, onClose, onDelete, likeEntity, lik
           <button
             type="button"
             className={`viewer-action ${heart.liked ? 'is-liked' : ''}`}
-            onClick={() => (heart.liked ? heart.unlike() : heart.onTap())}
+            onClick={() => (heart.liked ? heart.unlike() : heart.like())}
           >
             <svg viewBox="0 0 24 24" fill={heart.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 21s-7.5-4.7-9.3-9A5.3 5.3 0 0 1 12 6.5 5.3 5.3 0 0 1 21.3 12c-1.8 4.3-9.3 9-9.3 9z" />
