@@ -4,6 +4,8 @@ import { resolveMediaUrls, saveToDevice } from '../lib/media'
 import { DoodlePlayer } from './DoodlePlayer'
 import { haptic } from '../lib/haptics'
 import type { Media } from '../lib/types'
+import { useDoubleTapHeart } from '../lib/useDoubleTapHeart'
+import type { ReactableEntity } from '../store/postReactions'
 import './MediaViewer.css'
 
 interface Props {
@@ -12,10 +14,14 @@ interface Props {
   onClose: () => void
   /** Omitted when the viewer has no right to remove this. */
   onDelete?: () => void
+  /** What double tapping likes. Omitted where liking makes no sense. */
+  likeEntity?: ReactableEntity
+  likeId?: string
 }
 
 /** Full-screen viewer for a single photo or video. */
-export function MediaViewer({ media, caption, onClose, onDelete }: Props) {
+export function MediaViewer({ media, caption, onClose, onDelete, likeEntity, likeId }: Props) {
+  const heart = useDoubleTapHeart(likeEntity ?? 'gallery', likeEntity ? (likeId ?? null) : null)
   const [url, setUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<string | null>(null)
@@ -88,13 +94,43 @@ export function MediaViewer({ media, caption, onClose, onDelete }: Props) {
         ) : null}
 
         {url && media.kind !== 'video' && !media.strokes?.length && (
-          <img className="viewer-media" src={url} alt={caption ?? ''} onClick={(e) => e.stopPropagation()} />
+          <img
+            className="viewer-media"
+            src={url}
+            alt={caption ?? ''}
+            onClick={(e) => {
+              e.stopPropagation()
+              heart.onTap()
+            }}
+          />
+        )}
+
+        {/* Keyed on the tap count so each double tap restarts the animation
+            rather than the second one doing nothing. */}
+        {heart.burst > 0 && (
+          <span key={heart.burst} className="viewer-burst" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21s-7.5-4.7-9.3-9A5.3 5.3 0 0 1 12 6.5 5.3 5.3 0 0 1 21.3 12c-1.8 4.3-9.3 9-9.3 9z" />
+            </svg>
+          </span>
         )}
       </div>
 
       {caption && <p className="viewer-caption">{caption}</p>}
 
       <div className="viewer-actions">
+        {heart.canLike && (
+          <button
+            type="button"
+            className={`viewer-action ${heart.liked ? 'is-liked' : ''}`}
+            onClick={() => (heart.liked ? heart.unlike() : heart.onTap())}
+          >
+            <svg viewBox="0 0 24 24" fill={heart.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 21s-7.5-4.7-9.3-9A5.3 5.3 0 0 1 12 6.5 5.3 5.3 0 0 1 21.3 12c-1.8 4.3-9.3 9-9.3 9z" />
+            </svg>
+            {heart.liked ? 'Liked' : 'Like'}
+          </button>
+        )}
         <button type="button" className="viewer-action" onClick={() => void save()} disabled={saving || !url}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 19.5h15" />

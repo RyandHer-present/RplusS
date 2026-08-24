@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { MediaImage } from '../components/MediaImage'
-import { PostReactions } from '../components/PostReactions'
+import { HeartBadge } from '../components/HeartBadge'
 import { MediaViewer } from '../components/MediaViewer'
 import { OwnerTabs } from '../components/OwnerTabs'
 import { useFits, streakFor } from '../store/fits'
@@ -174,21 +174,18 @@ export default function Fits() {
           </h3>
           <div className="fit-grid">
             {dayFits.map((fit) => (
-              // Wrapped because the card is a button, and a reaction button
-              // cannot live inside another button.
-              <div key={fit.id} className="fit-card-wrap">
-                <button
-                  type="button"
-                  className="fit-card"
-                  onClick={() => {
-                    haptic('tap')
-                    setOpen(fit)
-                  }}
-                >
-                  {fit.media && <MediaImage media={fit.media} alt="" />}
-                </button>
-                <PostReactions entity="fits" id={fit.id} overlay />
-              </div>
+              <button
+                key={fit.id}
+                type="button"
+                className="fit-card"
+                onClick={() => {
+                  haptic('tap')
+                  setOpen(fit)
+                }}
+              >
+                {fit.media && <MediaImage media={fit.media} alt="" />}
+                <HeartBadge entity="fits" id={fit.id} />
+              </button>
             ))}
           </div>
         </section>
@@ -196,6 +193,8 @@ export default function Fits() {
 
       {open?.media && (
         <MediaViewer
+          likeEntity="fits"
+          likeId={open.id}
           media={open.media}
           caption={`${open.author_id === me ? 'You' : USERS[open.author_id].name} · ${dayLabel(open.day)}`}
           onDelete={isAdmin ? () => {

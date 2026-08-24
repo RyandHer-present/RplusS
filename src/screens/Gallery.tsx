@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { MediaImage } from '../components/MediaImage'
-import { PostReactions } from '../components/PostReactions'
+import { HeartBadge } from '../components/HeartBadge'
 import { MediaViewer } from '../components/MediaViewer'
 import { OwnerTabs } from '../components/OwnerTabs'
 import { useGallery, type GalleryPost } from '../store/gallery'
@@ -134,8 +134,8 @@ export default function Gallery() {
           </h2>
           <div className="gallery-grid">
             {items.map((item) => (
-              <div key={item.id} className="gallery-cell-wrap">
               <button
+                key={item.id}
                 type="button"
                 className="gallery-cell"
                 onClick={() => {
@@ -151,9 +151,8 @@ export default function Gallery() {
                     </svg>
                   </span>
                 )}
+                <HeartBadge entity="gallery" id={item.id} />
               </button>
-                <PostReactions entity="gallery" id={item.id} overlay />
-              </div>
             ))}
           </div>
         </section>
@@ -161,6 +160,8 @@ export default function Gallery() {
 
       {open?.media && (
         <MediaViewer
+          likeEntity="gallery"
+          likeId={open.id}
           media={open.media}
           caption={`${open.author_id === me ? 'You' : USERS[open.author_id].name} · ${timeLabel(open.created_at)}`}
           // Only the author can unsend; admin can remove anything.

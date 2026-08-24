@@ -1,0 +1,35 @@
+.heart-badge {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.16rem 0.3rem;
+  border-radius: 999px;
+  background: rgba(10, 10, 16, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #ff5c7a;
+  pointer-events: none;
+}
+
+.heart-badge svg { width: 0.78rem; height: 0.78rem; display: block; }
+
+.heart-badge-n {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A note is text on a light card, so the badge sits inline at its corner
+   without the dark pill that suits a photo. */
+.note-card .heart-badge {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  right: 0.5rem;
+  bottom: 0.45rem;
+}

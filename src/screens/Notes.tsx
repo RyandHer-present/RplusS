@@ -4,7 +4,8 @@ import { ScreenHeader } from '../components/ScreenHeader'
 import { useNotes, NOTE_COLORS, type Note, type NoteColor } from '../store/notes'
 import { useCapsules, untilLabel } from '../store/capsules'
 import { USERS, useSession } from '../store/session'
-import { FULL_SET, PostReactions } from '../components/PostReactions'
+import { HeartBadge } from '../components/HeartBadge'
+import { useDoubleTapHeart } from '../lib/useDoubleTapHeart'
 import { groupByDate, dayLabel, timeLabel } from '../lib/dates'
 import { haptic } from '../lib/haptics'
 import { sfx } from '../lib/sound'
@@ -39,6 +40,9 @@ function Editor({
   author?: string
 }) {
   const [confirming, setConfirming] = useState(false)
+  // Notes are liked from a button rather than by double tapping. The thing you
+  // would be tapping is a text field, and a double tap there selects a word.
+  const heart = useDoubleTapHeart('notes', draft.id)
 
   return createPortal(
     <div className="note-editor" role="dialog" aria-modal="true">
@@ -47,6 +51,21 @@ function Editor({
           {readOnly ? 'Close' : 'Cancel'}
         </button>
         <span className="note-editor-who">{author ?? (draft.id ? 'Editing' : 'New note')}</span>
+        {draft.id && heart.canLike && (
+          <button
+            type="button"
+            className={`note-like ${heart.liked ? 'is-liked' : ''}`}
+            aria-label={heart.liked ? 'Unlike' : 'Like'}
+            onClick={() => (heart.liked ? heart.unlike() : heart.onTap())}
+            // A single tap should like it here; the double tap window only
+            // exists so the gesture matches everywhere else it is offered.
+            onDoubleClick={heart.onTap}
+          >
+            <svg viewBox="0 0 24 24" fill={heart.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 21s-7.5-4.7-9.3-9A5.3 5.3 0 0 1 12 6.5 5.3 5.3 0 0 1 21.3 12c-1.8 4.3-9.3 9-9.3 9z" />
+            </svg>
+          </button>
+        )}
         {readOnly ? (
           <span className="note-save is-ghost" />
         ) : (
@@ -78,18 +97,33 @@ function Editor({
         </div>
       )}
 
+      {/*
+        These are uncontrolled on purpose.
+
+        A controlled field re-renders on every keystroke and writes `value`
+        back into the DOM. Android's keyboard composes words rather than
+        sending finished characters, and having the value reassigned underneath
+        an in-progress composition makes the text visibly blink out and return.
+        Not writing it back at all removes the fight.
+
+        `key` is what keeps them honest: opening a different note gives the
+        field a new identity and therefore a fresh defaultValue, which is the
+        one case where the value really does need to be replaced from outside.
+      */}
       <div className="note-editor-body">
         <input
+          key={`title-${draft.id ?? 'new'}`}
           className="note-title-input"
           placeholder="Title (optional)"
-          value={draft.title}
+          defaultValue={draft.title}
           readOnly={readOnly}
           onChange={(e) => onChange({ ...draft, title: e.target.value })}
         />
         <textarea
+          key={`body-${draft.id ?? 'new'}`}
           className="note-body-input"
           placeholder="Say whatever."
-          value={draft.body}
+          defaultValue={draft.body}
           readOnly={readOnly}
           autoFocus={!readOnly && !draft.id}
           onChange={(e) => onChange({ ...draft, body: e.target.value })}
@@ -190,10 +224,8 @@ export default function Notes() {
   }
 
   const card = (note: Note) => (
-    // Wrapped so the reaction row is a sibling of the card rather than nested
-    // inside its button.
-    <div key={note.id} className="note-card-wrap">
     <button
+      key={note.id}
       type="button"
       className={`note-card is-${note.color ?? 'a1'}`}
       onClick={() => openNote(note)}
@@ -226,9 +258,8 @@ export default function Notes() {
           </svg>
         </span>
       )}
+      <HeartBadge entity="notes" id={note.id} />
     </button>
-    <PostReactions entity="notes" id={note.id} choices={FULL_SET} />
-    </div>
   )
 
   return (

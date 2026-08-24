@@ -317,7 +317,18 @@
   font-weight: 600;
 }
 
-/* Reactions sit under the note rather than over it: a note is text, and
-   covering a corner of it would hide a word. */
-.note-card-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
-.note-card-wrap .post-reactions { padding: 0 0.2rem 0.1rem; }
+.note-like {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: 0.4rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.note-like svg { width: 1.15rem; height: 1.15rem; }
+.note-like.is-liked { color: #ff5c7a; }
