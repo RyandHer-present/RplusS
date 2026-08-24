@@ -180,6 +180,15 @@ export default function Jam() {
   const remove = useJams((s) => s.remove)
 
   const [url, setUrl] = useState('')
+  // Anything shared into the app from elsewhere is left here for whichever
+  // screen it belongs to. Consumed on arrival so it lands exactly once.
+  useEffect(() => {
+    const shared = sessionStorage.getItem('rpluss.shared')
+    if (!shared) return
+    sessionStorage.removeItem('rpluss.shared')
+    setUrl(shared)
+  }, [])
+
   const [note, setNote] = useState('')
 
   useEffect(() => {

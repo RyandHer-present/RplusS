@@ -12,6 +12,15 @@ const MAX_ROWS_HEIGHT = 132
 
 export function Composer() {
   const [text, setText] = useState('')
+  // Anything shared into the app from elsewhere is left here for whichever
+  // screen it belongs to. Consumed on arrival so it lands exactly once.
+  useEffect(() => {
+    const shared = sessionStorage.getItem('rpluss.shared')
+    if (!shared) return
+    sessionStorage.removeItem('rpluss.shared')
+    setText((t) => (t ? `${t} ${shared}` : shared))
+  }, [])
+
   const me = useSession((s) => s.user)
   const send = useChat((s) => s.send)
   const replyTo = useChat((s) => s.replyTo)

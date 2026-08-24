@@ -25,6 +25,27 @@ const TABLES = [
   { table: 'media', label: 'Media rows' },
 ]
 
+/**
+ * Backblaze gives 10 GB before it starts charging. The number is a policy, not
+ * a fact about the code, so it lives here where it can be changed when the
+ * plan does.
+ */
+const FREE_BYTES = 10 * 1024 * 1024 * 1024
+const WARN_AT = 0.75
+const URGENT_AT = 0.9
+
+const size = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`
+  const units = ['KB', 'MB', 'GB', 'TB']
+  let n = bytes / 1024
+  let i = 0
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024
+    i++
+  }
+  return `${n.toFixed(n < 10 ? 1 : 0)} ${units[i]}`
+}
+
 const since = (iso: string | null) => {
   if (!iso) return 'never'
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -41,6 +62,7 @@ export default function Health() {
   const [checks, setChecks] = useState<Check[]>([])
   const [counts, setCounts] = useState<{ label: string; count: number | null }[]>([])
   const [newest, setNewest] = useState<string | null>(null)
+  const [storage, setStorage] = useState<{ files: number; bytes: number; byKind: Record<string, number> } | null>(null)
   const [running, setRunning] = useState(false)
 
   const run = useCallback(async () => {
@@ -135,6 +157,22 @@ export default function Health() {
     )
     setCounts(sizes)
 
+    // Storage is accounted from what was recorded at upload rather than by
+    // asking Backblaze: the row is written in the same breath as the file, and
+    // this avoids putting bucket credentials anywhere near the browser.
+    const { data: files } = await supabase.from('media').select('kind, bytes')
+    if (files) {
+      const rows = files as { kind: string; bytes: number | null }[]
+      const byKind: Record<string, number> = {}
+      let bytes = 0
+      for (const row of rows) {
+        const n = row.bytes ?? 0
+        bytes += n
+        byKind[row.kind] = (byKind[row.kind] ?? 0) + n
+      }
+      setStorage({ files: rows.length, bytes, byKind })
+    }
+
     const { data } = await supabase
       .from('messages')
       .select('created_at')
@@ -195,6 +233,46 @@ export default function Health() {
         ))}
         {!checks.length && <p className="health-detail">Running…</p>}
       </section>
+
+      {storage && (
+        <section className="panel">
+          <h2 className="panel-title">Storage</h2>
+          <p className="panel-note">
+            {size(storage.bytes)} of {size(FREE_BYTES)} used across {storage.files} files.
+            {storage.bytes / FREE_BYTES >= URGENT_AT
+              ? ' Close to the limit — uploads will start costing money.'
+              : storage.bytes / FREE_BYTES >= WARN_AT
+                ? ' Worth thinking about what can be cleared.'
+                : ' Plenty of room.'}
+          </p>
+
+          <div
+            className={`storage-bar is-${
+              storage.bytes / FREE_BYTES >= URGENT_AT
+                ? 'urgent'
+                : storage.bytes / FREE_BYTES >= WARN_AT
+                  ? 'warn'
+                  : 'ok'
+            }`}
+          >
+            <span
+              className="storage-fill"
+              // Always at least a sliver, so "nearly empty" still reads as a
+              // bar rather than as a broken one.
+              style={{ width: `${Math.max(0.6, (storage.bytes / FREE_BYTES) * 100)}%` }}
+            />
+          </div>
+
+          <div className="health-counts">
+            {Object.entries(storage.byKind).map(([kind, bytes]) => (
+              <div key={kind} className="health-count">
+                <span className="health-count-n">{size(bytes)}</span>
+                <span className="health-count-l">{kind}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h2 className="panel-title">Size</h2>

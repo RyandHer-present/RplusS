@@ -204,3 +204,29 @@
   .play-cell.is-won .play-disc { animation: none; }
   .play-col { transition: none; }
 }
+
+/* ---- which game ---- */
+
+.play-games {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.play-game-tab {
+  flex: 1;
+  padding: 0.5rem 0.4rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.play-game-tab.is-on {
+  border-color: color-mix(in srgb, var(--a2) 55%, transparent);
+  background: color-mix(in srgb, var(--a2) 13%, transparent);
+  color: var(--fg);
+}

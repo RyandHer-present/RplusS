@@ -1,0 +1,106 @@
+.hm { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.hm-top { display: flex; align-items: center; gap: 0.9rem; }
+
+.hm-figure {
+  width: 6.2rem;
+  height: 5.2rem;
+  flex: none;
+  stroke: var(--muted);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* The figure is the accent colour so the gallows reads as scenery. */
+.hm-figure .hm-body { stroke: var(--a2); }
+.hm-figure .hm-body circle { fill: none; }
+
+.hm-state { min-width: 0; }
+.hm-who { margin: 0; font-size: 1rem; font-weight: 650; }
+
+.hm-misses {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.hm-wrong { letter-spacing: 0.12em; text-decoration: line-through; }
+
+.hm-word {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  justify-content: center;
+}
+
+.hm-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.9rem;
+  padding: 0 0.15rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.hm-slot.is-space { border-bottom-color: transparent; min-width: 0.7rem; }
+
+.hm-word.is-won .hm-slot { border-bottom-color: var(--a2); color: var(--a2); }
+.hm-word.is-lost .hm-slot { border-bottom-color: #f87171; }
+
+.hm-keys { display: flex; flex-direction: column; gap: 0.35rem; }
+.hm-row { display: flex; justify-content: center; gap: 0.3rem; }
+
+.hm-key {
+  flex: 1;
+  max-width: 2.4rem;
+  padding: 0.55rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.hm-key:disabled { opacity: 0.4; }
+.hm-key.is-hit { border-color: var(--a2); color: var(--a2); opacity: 0.75; }
+.hm-key.is-miss { opacity: 0.25; text-decoration: line-through; }
+
+.hm-new { display: flex; flex-direction: column; gap: 0.4rem; }
+.hm-label { font-size: 0.88rem; font-weight: 600; }
+.hm-new-row { display: flex; gap: 0.4rem; }
+
+.hm-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hm-go {
+  padding: 0.55rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--a2) 55%, transparent);
+  background: color-mix(in srgb, var(--a2) 15%, transparent);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 650;
+}
+
+.hm-go:disabled { opacity: 0.45; }
+
+.hm-hint { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.hm-error { margin: 0; font-size: 0.82rem; color: #f0a3a3; }

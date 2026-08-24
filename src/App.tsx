@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, useRef } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Shell } from './components/Shell'
 import Lock from './screens/Lock'
@@ -11,6 +11,7 @@ import { usePanic } from './store/panic'
 import { PanicScreen } from './components/PanicScreen'
 import { installPanicGesture } from './lib/panicGesture'
 import { resubscribe } from './lib/push'
+import { destinationFor, readIncoming } from './lib/incoming'
 
 // Route-level code splitting: the lock screen is all most sessions load first,
 // so the section bundles stay off the critical path.
@@ -41,6 +42,26 @@ export default function App() {
   // Installed at the root rather than per screen: it has to work from anywhere,
   // including the lock screen.
   useEffect(() => installPanicGesture(), [])
+
+  // A share, or a Shortcut opening a URL. Read once, before anything else has
+  // a chance to navigate, and only acted on once signed in — otherwise it
+  // would be thrown away by the lock screen.
+  const incoming = useRef(readIncoming())
+  useEffect(() => {
+    if (!role) return
+    const arrived = incoming.current
+    if (!arrived) return
+    incoming.current = null
+
+    if (arrived.text) {
+      const where = destinationFor(arrived.text)
+      // Left for the destination screen to pick up and prefill.
+      sessionStorage.setItem('rpluss.shared', arrived.text)
+      window.location.hash = where
+    } else if (arrived.to) {
+      window.location.hash = `/${arrived.to}`
+    }
+  }, [role])
 
   // The service worker talks back for two reasons: a notification was tapped
   // and wants a screen opened, or the browser rotated the push subscription

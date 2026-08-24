@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
+import { Hangman } from '../components/Hangman'
 import {
   COLS,
   ROWS,
@@ -56,6 +57,8 @@ export default function Play() {
     void start(me)
   }
 
+  const [which, setWhich] = useState<'connect4' | 'hangman'>('connect4')
+
   return (
     <div className="screen-scroll">
       <ScreenHeader
@@ -63,6 +66,29 @@ export default function Play() {
         sub={`${score.ry}–${score.sarah}${score.draws ? ` · ${score.draws} drawn` : ''}`}
       />
 
+      <div className="play-games">
+        {([
+          ['connect4', 'Connect 4'],
+          ['hangman', 'Hangman'],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={`play-game-tab ${which === id ? 'is-on' : ''}`}
+            onClick={() => {
+              haptic('tap')
+              setWhich(id)
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {which === 'hangman' && <Hangman />}
+
+      {which === 'connect4' && (
+      <>
       <div className="play-score">
         {(['ry', 'sarah'] as const).map((user) => (
           <div key={user} className={`play-player is-${user === 'ry' ? 'r' : 's'}`}>
@@ -167,9 +193,11 @@ export default function Play() {
       )}
 
       <p className="play-note">
-        One board, shared. Their move appears here the moment they make it —
-        neither of you has to be here at the same time.
+        One board, shared. A move shows up here the moment it is made — neither
+        of us has to be here at the same time.
       </p>
+      </>
+      )}
     </div>
   )
 }

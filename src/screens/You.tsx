@@ -125,6 +125,43 @@ export default function You() {
 
       <VibePicker />
 
+      {user && (
+        <section className="panel">
+          <h2 className="panel-title">Shortcuts</h2>
+          <p className="panel-note">
+            Sharing a link from another app opens it here, ready to send — a
+            Spotify link goes to Jam, anything else to the chat. On iPhone,
+            sharing straight into an app is not something Safari can do, so use
+            the Shortcuts app: make a shortcut that opens one of these and it
+            behaves the same way.
+          </p>
+          <ul className="shortcut-list">
+            {[
+              ['Open the chat', '?to=chat'],
+              ['Open notes', '?to=notes'],
+              ['Open jam links', '?to=jam'],
+              ['Send text straight to the chat', '?text=hello'],
+            ].map(([label, query]) => (
+              <li key={query} className="shortcut-row">
+                <span className="shortcut-label">{label}</span>
+                <button
+                  type="button"
+                  className="shortcut-copy"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(
+                      `${window.location.origin}/RplusS/${query}`,
+                    )
+                    haptic('tap')
+                  }}
+                >
+                  Copy link
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="panel">
         <h2 className="panel-title">Theme</h2>
 
