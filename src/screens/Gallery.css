@@ -144,3 +144,5 @@
 
 .on-this-day-cell:active { transform: scale(0.95); }
 .on-this-day-cell .media-image { position: absolute; inset: 0; aspect-ratio: auto !important; height: 100%; }
+
+.gallery-cell-wrap { position: relative; }

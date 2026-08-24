@@ -24,11 +24,6 @@ export function VibePicker() {
   return (
     <section className="panel">
       <h2 className="panel-title">Vibe</h2>
-      <p className="vibe-blurb">
-        Changes the colours for both of you, everywhere, until someone changes
-        it back. Tap the one that is on to turn it off.
-      </p>
-
       <div className="vibe-grid">
         {VIBE_LIST.map((v) => (
           <button

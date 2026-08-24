@@ -10,6 +10,7 @@ import { MOODS, usePeople } from '../store/people'
 import { BackupPanel } from '../components/BackupPanel'
 import { VibePicker } from '../components/VibePicker'
 import { InstallHint } from '../components/InstallHint'
+import { RefreshButton } from '../components/RefreshButton'
 import { PushPanel } from '../components/PushPanel'
 import './You.css'
 
@@ -40,6 +41,7 @@ export default function You() {
       <header className="screen-head">
         <h1 className="screen-title">{isAdmin ? 'Admin' : 'You'}</h1>
         {me && <p className="screen-sub">{me.name}</p>}
+        <RefreshButton />
       </header>
 
       {isAdmin && (
@@ -125,7 +127,6 @@ export default function You() {
 
       <section className="panel">
         <h2 className="panel-title">Theme</h2>
-        <p className="panel-note">Only changes how it looks for you.</p>
 
         <div className="themes">
           {THEME_LIST.map((theme) => (

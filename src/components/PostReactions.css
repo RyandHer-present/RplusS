@@ -1,0 +1,53 @@
+.post-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.post-reactions.is-overlay {
+  position: absolute;
+  left: 0.45rem;
+  bottom: 0.45rem;
+  z-index: 2;
+}
+
+.post-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.2rem 0.42rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.post-reactions.is-overlay .post-reaction {
+  background: rgba(12, 12, 20, 0.66);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.post-reaction.is-mine {
+  border-color: color-mix(in srgb, var(--a2) 60%, transparent);
+  background: color-mix(in srgb, var(--a2) 16%, transparent);
+}
+
+/* The button that adds one sits quieter than the ones already there. */
+.post-reaction.is-add { opacity: 0.5; }
+.post-reaction.is-add:hover { opacity: 1; }
+
+.post-reaction-n {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.post-reaction.is-mine .post-reaction-n { color: var(--fg); }

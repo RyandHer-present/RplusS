@@ -52,8 +52,8 @@ export function BackupPanel() {
       <h2 className="panel-title">Backup</h2>
 
       <p className="backup-blurb">
-        Everything you two have written lives in one place. This writes a second
-        copy you can keep — readable without this site, or any internet.
+        Everything we've put here lives in one place. This makes a second copy
+        to keep — readable without this site, or any internet.
       </p>
 
       {running ? (

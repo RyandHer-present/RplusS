@@ -1,0 +1,24 @@
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.34rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.refresh-btn svg { width: 0.85rem; height: 0.85rem; }
+
+.refresh-btn.is-working svg { animation: refresh-spin 0.9s linear infinite; }
+
+.refresh-btn.is-done {
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--a2) 55%, transparent);
+}
+
+@keyframes refresh-spin { to { transform: rotate(360deg); } }

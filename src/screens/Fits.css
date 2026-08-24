@@ -150,3 +150,6 @@
 
 .fit-card:active { transform: scale(0.96); }
 .fit-card .media-image { position: absolute; inset: 0; aspect-ratio: auto !important; height: 100%; }
+
+/* The card is a button, so its reaction row is a sibling laid over it. */
+.fit-card-wrap { position: relative; }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { MediaImage } from '../components/MediaImage'
+import { PostReactions } from '../components/PostReactions'
 import { MediaViewer } from '../components/MediaViewer'
 import { OwnerTabs } from '../components/OwnerTabs'
 import { useGallery, type GalleryPost } from '../store/gallery'
@@ -133,8 +134,8 @@ export default function Gallery() {
           </h2>
           <div className="gallery-grid">
             {items.map((item) => (
+              <div key={item.id} className="gallery-cell-wrap">
               <button
-                key={item.id}
                 type="button"
                 className="gallery-cell"
                 onClick={() => {
@@ -151,6 +152,8 @@ export default function Gallery() {
                   </span>
                 )}
               </button>
+                <PostReactions entity="gallery" id={item.id} overlay />
+              </div>
             ))}
           </div>
         </section>

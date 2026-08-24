@@ -4,6 +4,7 @@ import { ScreenHeader } from '../components/ScreenHeader'
 import { useNotes, NOTE_COLORS, type Note, type NoteColor } from '../store/notes'
 import { useCapsules, untilLabel } from '../store/capsules'
 import { USERS, useSession } from '../store/session'
+import { FULL_SET, PostReactions } from '../components/PostReactions'
 import { groupByDate, dayLabel, timeLabel } from '../lib/dates'
 import { haptic } from '../lib/haptics'
 import { sfx } from '../lib/sound'
@@ -189,8 +190,10 @@ export default function Notes() {
   }
 
   const card = (note: Note) => (
+    // Wrapped so the reaction row is a sibling of the card rather than nested
+    // inside its button.
+    <div key={note.id} className="note-card-wrap">
     <button
-      key={note.id}
       type="button"
       className={`note-card is-${note.color ?? 'a1'}`}
       onClick={() => openNote(note)}
@@ -224,6 +227,8 @@ export default function Notes() {
         </span>
       )}
     </button>
+    <PostReactions entity="notes" id={note.id} choices={FULL_SET} />
+    </div>
   )
 
   return (

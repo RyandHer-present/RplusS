@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { MediaImage } from '../components/MediaImage'
+import { PostReactions } from '../components/PostReactions'
 import { MediaViewer } from '../components/MediaViewer'
 import { OwnerTabs } from '../components/OwnerTabs'
 import { useFits, streakFor } from '../store/fits'
@@ -173,17 +174,21 @@ export default function Fits() {
           </h3>
           <div className="fit-grid">
             {dayFits.map((fit) => (
-              <button
-                key={fit.id}
-                type="button"
-                className="fit-card"
-                onClick={() => {
-                  haptic('tap')
-                  setOpen(fit)
-                }}
-              >
-                {fit.media && <MediaImage media={fit.media} alt="" />}
-              </button>
+              // Wrapped because the card is a button, and a reaction button
+              // cannot live inside another button.
+              <div key={fit.id} className="fit-card-wrap">
+                <button
+                  type="button"
+                  className="fit-card"
+                  onClick={() => {
+                    haptic('tap')
+                    setOpen(fit)
+                  }}
+                >
+                  {fit.media && <MediaImage media={fit.media} alt="" />}
+                </button>
+                <PostReactions entity="fits" id={fit.id} overlay />
+              </div>
             ))}
           </div>
         </section>

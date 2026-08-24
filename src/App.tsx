@@ -6,6 +6,7 @@ import { useSession } from './store/session'
 import { supabase } from './lib/supabase'
 import { usePeople } from './store/people'
 import { useVibe } from './store/vibe'
+import { usePostReactions } from './store/postReactions'
 import { usePanic } from './store/panic'
 import { PanicScreen } from './components/PanicScreen'
 import { installPanicGesture } from './lib/panicGesture'
@@ -31,6 +32,8 @@ export default function App() {
   const loadPeople = usePeople((s) => s.load)
   const subscribePeople = usePeople((s) => s.subscribe)
   const loadVibe = useVibe((s) => s.load)
+  const loadPostReactions = usePostReactions((s) => s.load)
+  const subscribePostReactions = usePostReactions((s) => s.subscribe)
   const subscribeVibe = useVibe((s) => s.subscribe)
   const signOut = useSession((s) => s.signOut)
   const hidden = usePanic((s) => s.hidden)
@@ -83,6 +86,14 @@ export default function App() {
     void loadVibe()
     return subscribeVibe()
   }, [role, loadVibe, subscribeVibe])
+
+  // Reactions on fits, gallery posts and notes. One subscription covers all of
+  // them, so a heart appearing on her screen needs no per-screen wiring.
+  useEffect(() => {
+    if (!role) return
+    void loadPostReactions()
+    return subscribePostReactions()
+  }, [role, loadPostReactions, subscribePostReactions])
 
   // Checked before anything else, so nothing of the app renders underneath it.
   if (hidden) return <PanicScreen />

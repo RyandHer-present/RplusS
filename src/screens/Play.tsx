@@ -86,7 +86,7 @@ export default function Play() {
             Reset score to 0 – 0
           </button>
           <p className="play-admin-note">
-            Clears the counter for both of you. The games themselves are kept.
+            Sets our score back to nothing. The games themselves stay.
           </p>
         </div>
       )}

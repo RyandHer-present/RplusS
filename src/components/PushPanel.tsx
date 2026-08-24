@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { disablePush, enablePush, pushState, type PushState } from '../lib/push'
-import { useSession } from '../store/session'
+import { USERS, other, useSession } from '../store/session'
 import { haptic } from '../lib/haptics'
 import './PushPanel.css'
 
 export function PushPanel() {
   const me = useSession((s) => s.user)
+  const them = me ? USERS[other(me)].name : null
   const [state, setState] = useState<PushState | null>(null)
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
@@ -61,8 +62,8 @@ export function PushPanel() {
         <>
           <p className="panel-note">
             {state === 'on'
-              ? 'This device will be told when they send something, even with the app closed.'
-              : 'Get told when they send something, without having to open the app.'}
+              ? `This device will know when ${them} sends something, even with the app closed.`
+              : `Know when ${them} sends something, without having to open the app.`}
           </p>
           <button
             type="button"
