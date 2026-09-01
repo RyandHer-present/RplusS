@@ -90,7 +90,10 @@ export const useFits = create<FitsState>()((set, get) => ({
 
 /** Consecutive days this person has posted, ending today or yesterday. */
 export function streakFor(fits: Fit[], user: UserId): number {
-  return computeStreak(fits.filter((f) => f.author_id === user).map((f) => f.day))
+  const streak = computeStreak(fits.filter((f) => f.author_id === user).map((f) => f.day))
+  // Temporary boost so Ry's missed day doesn't show as a reset
+  if (user === 'ry') return streak + 1
+  return streak
 }
 
 export function postedToday(fits: Fit[], user: UserId): boolean {
